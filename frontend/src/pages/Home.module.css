@@ -1,0 +1,132 @@
+.main {
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+   
+    background-image: url(/home.png); /* Ruta desde public/ */
+  }
+  
+  .d1, .d2, .d3, .d4 {
+    position: absolute;
+    background-image: url(/home.png); /* Ruta desde public/ */
+    background-size: 1000px 500px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .d1 {
+    height: 10cm;
+    width: 15vw;
+    background-position: 0 50%;
+    z-index: 2;
+    animation: dd1 10s 1, dd12 10s 1;
+    animation-delay: 4s, 14s;
+  }
+  
+  .d2 {
+    height: 50vh;
+    width: 25vw;
+    background-position: -10vw 50%;
+    left: 10vw;
+    z-index: 1;
+    animation: dd2 10s 2;
+    animation-delay: 4s;
+  }
+  
+  .d3 {
+    height: 100vh;
+    width: 40vw;
+    left: 25vw;
+    background-position: -35vw 50%;
+    z-index: 3;
+    animation: dd3 10s 2;
+    animation-delay: 4s;
+  }
+  
+  .d4 {
+    height: 80vh;
+    width: 25vw;
+    left: 60vw;
+    background-position: -70vw 50%;
+    z-index: 1;
+    animation: dd4 10s 2;
+    animation-delay: 4s;
+  }
+  
+  @keyframes dd1 {
+    50% {
+      width: 95vw;
+    }
+  }
+  @keyframes dd12 {
+    50% {
+      background-position: Calc(0vw - 40px) 50%;
+    }
+  }
+  @keyframes dd2 {
+    50% {
+      background-position: Calc(-10vw - 40px) 50%;
+    }
+  }
+  @keyframes dd3 {
+    50% {
+      background-position: Calc(-35vw - 40px) 50%;
+    }
+  }
+  @keyframes dd4 {
+    50% {
+      background-position: Calc(-70vw - 40px) 50%;
+    }
+  }
+  
+ 
+ @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .contenido {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-align: center;
+    z-index: 4;
+    animation: fadeIn 1.5s ease-in-out; /* Aparece suavemente */
+  }
+  
+  .contenido h1 {
+    font-size: 4rem; /* Tamaño más grande */
+    font-weight: bold;
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.7);
+    animation: fadeIn 1.5s ease-in-out;
+  }
+  
+  .contenido a {
+    text-decoration: none;
+    background: linear-gradient(135deg, #036a5c, #716e09);
+    color: white;
+    padding: 12px 25px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeIn 2s ease-in-out;
+  }
+  
+  .contenido a:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 255, 10, 100.9);
+  }
+
+  
+  

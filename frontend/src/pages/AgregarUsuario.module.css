@@ -1,0 +1,193 @@
+
+/* Estilo para el body o un div raíz */
+body, #root {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-image: url('/usuarios\ .webp'); /* Ruta desde public/ */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Opcional: Fijo al hacer scroll */
+}
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: rgba(193, 222, 172, 0.812); /* Color de respaldo si la imagen no carga */
+    background-size: cover; /* Cubre todo el contenedor sin deformarse */
+    background-position: center; /* Centra la imagen */
+    background-repeat: no-repeat; /* Evita que se repita */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h2, h3 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.addButton {
+    display: block;
+    margin: 0 auto 25px;
+    padding: 12px 20px;
+    background-color: #0bae34;
+    color: white;
+    border: none;
+    font-size: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.addButton:hover {
+    background-color: #0056b3;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.form label {
+    font-weight: bold;
+    color: #444;
+}
+
+.form input,
+.form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: border-color 0.3s ease;
+}
+
+.form input:focus,
+.form select:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.form button[type="submit"] {
+    padding: 12px;
+    background-color: #28a745;
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.form button[type="submit"]:hover {
+    background-color: #218838;
+}
+
+.userList {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.userItem {
+    background-color: #91cf91;
+    border: 1px solid #ddd;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: box-shadow 0.2s ease;
+}
+
+.userItem:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.deleteButton {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.deleteButton:hover {
+    background-color: #c82333;
+}
+
+
+
+/* Estilos para la barra superior */
+.topBar {
+   display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    background: rgba(23, 21, 18, 0.895); /* Fondo negro semitransparente */
+    border-radius: 12px;
+    padding: 18px 28px;
+    box-shadow: 0 4px 24px rgb(0, 0, 0);
+    margin: 20px 20px 20px 20px;
+}
+
+.titulo {
+     margin: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #fff700; /* Amarillo vibrante */
+    background: linear-gradient(90deg, #ecf013 30%, #47cd2c 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    
+    letter-spacing: 2px;
+    padding: 6px 0;
+}
+
+.topBarButtons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.regresarBtn {
+    background: transparent;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.regresarBtn:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+.verManzanasBtn {
+    background: linear-gradient(135deg, #02911a, #f3ee00);
+    color: #222;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s, color 0.2s;
+}
+.verManzanasBtn:hover {
+    background: linear-gradient(135deg, #5a78e1, #9466c5);
+    color: #fff;
+}

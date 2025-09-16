@@ -1,0 +1,357 @@
+.dashboardContainer {
+    padding: 20px;
+    background-color: transparent;
+}
+
+.btnAgregarManzana {
+   background: linear-gradient(135deg, #02911a, #f3ee00);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.btnAgregarManzana:hover {
+    background: linear-gradient(135deg, #5a78e1, #9466c5);
+}
+
+.manzanasGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.manzanaCard {
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Estados de la manzana */
+.manzanaCard.verde {
+    background-color: rgba(85, 185, 13, 0.812); /* Verde */
+    color: white;
+    box-shadow: 0 0 15px rgb(0, 162, 255);
+}
+
+.manzanaCard.rojo {
+    background-color: rgba(234, 57, 57, 0.812); /* Rojo */
+    color: white;
+    box-shadow: 0 0 15px rgb(12, 10, 10);
+}
+
+.btnVer, .btnAgregar {
+    margin: 5px;
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.btnVer {
+    background-color: #2196F3;
+    color: white;
+}
+
+.btnAgregar {
+    background-color: #ff9800;
+    color: white;
+}
+
+
+.formAgregarManzana {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.formAgregarManzana input {
+    padding: 10px;
+    border: 1px solid #0e0e0c;
+    border-radius: 5px;
+    background-color: rgba(197, 213, 175, 0.812);;
+}
+
+
+.btnAgregarManzana button {
+    padding: 100px;
+    background-color: rgb(10, 12, 10);
+    color: rgb(14, 14, 14);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+  
+  .modalContent {
+    background-color: #fdf7f7;
+    padding: 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #100f0f;
+  }
+  
+  input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    transition: all 0.3s;
+  }
+
+  select {
+    width: 105%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    background-color: #f9f9f9;
+    transition: all 0.3s;
+  }
+  
+  input:focus {
+    border-color: #4CAF50;
+    background-color: #fff;
+  }
+  
+  button {
+    padding: 12px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 1rem;
+  }
+  
+  button[type="button"] {
+    background-color: #f44336;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+  button[type="button"]:hover {
+    background-color: #e53935;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+/* boton eliminar*/
+
+/* boton agregar actividad*/
+.cardButtons {
+    display: flex;
+   
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Botón Agregar */
+.btnAgregar {
+    background: #3498db;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.3s;
+}
+
+.btnAgregar:hover {
+    background: #01940b;
+}
+
+/* Botón Eliminar */
+.btnEliminar {
+    background: #3498db;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.3s;
+}
+
+.btnEliminar:hover {
+    background: #c0392b;
+}
+
+/* Botón Ver Actividades */
+.btnAccion {
+    background: #3498db;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 0.3s;
+}
+
+.btnAccion:hover {
+    background: #27ae60;
+}
+
+/*estilos de los filtros de busqueda*/
+.searchBarContainer {
+    display: flex;
+    align-items: abaseline; 
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.searchInputWrapper {
+    position: relative;
+    display: flex;
+    align-items: abaseline;
+}
+
+.searchInput {
+    padding: 10px;
+    border: 1px solid #0e0e0c;
+    border-radius: 5px;
+    background-color: rgba(197, 213, 175, 0.812);
+    font-size: 1rem;
+    min-width: 220px;
+    transition: border-color 0.3s, background-color 0.3s;
+    padding-left: 35px; /* Espacio para el ícono */
+}
+
+.searchIcon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+
+/* Estilo para el botón de filtro */
+.filterButton {
+  background: linear-gradient(135deg, #02911a, #f3ee00);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin-bottom: 0;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: background 0.3s, color 0.3s;
+}
+
+.filterButton:hover,
+.activeFilter {
+     background: linear-gradient(135deg, #5a78e1, #9466c5);
+    color: #fff;
+}
+/* Estilos para la barra superior del dashboard */
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    background: rgba(23, 21, 18, 0.895); /* Fondo negro semitransparente */
+    border-radius: 12px;
+    padding: 18px 28px;
+    box-shadow: 0 4px 24px rgb(0, 0, 0);
+}
+.titulo {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #fff700; /* Amarillo vibrante */
+    background: linear-gradient(90deg, #ecf013 30%, #47cd2c 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    
+    letter-spacing: 2px;
+    padding: 6px 0;
+}
+
+.searchBarContainer {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    justify-content: flex-start;
+}
+/* imagen de fondo*/
+.dashboardContainer {
+    padding: 20px;
+    background: url(.png) center center/cover no-repeat;
+    min-height: 100vh;
+    
+}
+
+.contadorDias {
+    margin-left: 60px;
+    font-size: 1.5rem;
+   background-color: rgba(255, 0, 0, 0);
+  color: rgb(15, 15, 15);
+  font-size: 12px;
+  font-weight: bold;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+/*
+font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #100f0f;*/
