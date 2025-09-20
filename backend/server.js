@@ -12,7 +12,7 @@ const app = express();
 // Middleware para procesar JSON
 app.use(express.json());
 app.use(cors({
-    origin: 'http://localhost:5173', // Permitir solo el frontend
+    origin: 'https://siembrasapp.onrender.com', // Permitir solo el frontend
     credentials: true
 }));
 
