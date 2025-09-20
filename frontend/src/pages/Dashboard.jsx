@@ -22,7 +22,7 @@ const Dashboard = () => {
     const [filtroEstado, setFiltroEstado] = useState(""); // "" = todos, "rojo", "verde"
 
     useEffect(() => {
-        fetch("http://localhost:4000/manzanas")
+        fetch(`${import.meta.env.VITE_BACKEND}/manzanas`)
             .then(res => res.json())
             .then(data => setManzanas(data))
             .catch(error => console.error("Error al obtener manzanas:", error));
@@ -31,7 +31,7 @@ const Dashboard = () => {
     const handleAgregarManzana = () => {
         if (!nuevaManzana.trim()) return;
 
-        fetch("http://localhost:4000/manzanas", {
+        fetch(`${import.meta.env.VITE_BACKEND}/manzanas`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nombre: nuevaManzana })
@@ -56,8 +56,8 @@ const Dashboard = () => {
 
     const handleSubmitActividad = (e) => {
         e.preventDefault();
-    
-        fetch("http://localhost:4000/actividades", {
+
+        fetch(`${import.meta.env.VITE_BACKEND}/actividades`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -97,7 +97,7 @@ const diasDesdeSiembra = (manzana) => {
         if (!confirmar) return;
     
         try {
-            const response = await fetch(`http://localhost:4000/manzanas/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND}/manzanas/${id}`, {
                 method: "DELETE",
             });
     
@@ -116,7 +116,7 @@ const diasDesdeSiembra = (manzana) => {
     useEffect(() => {
         const obtenerManzanas = async () => {
             try {
-                const res = await fetch("http://localhost:4000/manzanas/estado"); // Llamamos al nuevo endpoint
+                const res = await fetch(`${import.meta.env.VITE_BACKEND}/manzanas/estado`); // Llamamos al nuevo endpoint
                 const data = await res.json();
                 setManzanas(data);
             } catch (error) {

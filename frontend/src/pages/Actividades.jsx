@@ -18,7 +18,7 @@ const Actividades = () => {
 
     const fetchActividades = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/actividades/${manzanaId}`);
+            const response = await fetch(`${import.meta.env.VITE_BACKEND}/actividades/${manzanaId}`);
             const data = await response.json();
             setActividades(data);
         } catch (error) {
@@ -35,7 +35,7 @@ const Actividades = () => {
     const handleDelete = async (id) => {
         if (window.confirm("¿Estás seguro de que quieres eliminar esta actividad?")) {
             try {
-                await fetch(`http://localhost:4000/actividades/${id}`, {
+                await fetch(`${import.meta.env.VITE_BACKEND}/actividades/${id}`, {
                     method: "DELETE",
                 });
                 setActividades(actividades.filter((actividad) => actividad._id !== id));
@@ -54,7 +54,7 @@ const Actividades = () => {
 
     const handleSave = async () => {
         try {
-            const response = await fetch(`http://localhost:4000/actividades/${actividadEditando._id}`, {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND}/actividades/${actividadEditando._id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

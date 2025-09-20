@@ -30,7 +30,7 @@ const AgregarUsuario = () => {
 
     const fetchUsuarios = async (authToken) => {
         try {
-            const res = await fetch("http://localhost:4000/auth/usuarios", {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND}/auth/usuarios`, {
                 headers: { Authorization: `Bearer ${authToken}` },
             });
             const data = await res.json();
@@ -50,7 +50,7 @@ const AgregarUsuario = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch("http://localhost:4000/auth/crear", {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND}/auth/crear`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -78,7 +78,7 @@ const AgregarUsuario = () => {
         if (!window.confirm("¿Estás seguro de eliminar este usuario?")) return;
 
         try {
-            const res = await fetch(`http://localhost:4000/auth/usuarios/${id}`, {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND}/auth/usuarios/${id}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,
