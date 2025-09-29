@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import styles from "./Dashboard.module.css";
 import { useNavigate } from "react-router-dom";
 import { FaPlus, FaClipboardList, FaSignOutAlt, FaSearch } from "react-icons/fa"; // Agrega FaSearch
+import { getBackendUrl } from "../utils/api";
 
 const Dashboard = () => {
     const [manzanas, setManzanas] = useState([]);
@@ -270,6 +271,8 @@ const diasDesdeSiembra = (manzana) => {
                                 <option value="fumigar rolla">Fumigar Rolla</option>
                                 <option value="abonar">Abonar</option>
                                 <option value="sembrar">Sembrar</option>
+                                <option value="tronquiar">Tronquiar</option>
+                                <option value="fumigar gilote">Fumigar Gilote</option>
                             </select>
                             <input
                                 type="date"

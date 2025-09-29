@@ -52,34 +52,41 @@ export default Login;*/
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
+//import { getBackendUrl } from "../utils/api";
 
 const Login = () => {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError(""); // Limpiar errores previos
 
-        const res = await fetch(`${import.meta.env.VITE_BACKEND}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-        });
-    
-        const data = await res.json();
-    
-        if (res.ok) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("role", data.role); // Guardar el rol
-    
-            if (data.role === "admin") {
-                navigate("/agregar-usuario"); // Redirigir al formulario si es admin
+        try {
+            const res = await fetch(`${import.meta.env.VITE_BACKEND}/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+            });
+        
+            const data = await res.json();
+        
+            if (res.ok) {
+                localStorage.setItem("token", data.token);
+                localStorage.setItem("role", data.role); // Guardar el rol
+        
+                if (data.role === "admin") {
+                    navigate("/agregar-usuario"); // Redirigir al formulario si es admin
+                } else {
+                    navigate("/dashboard"); // O a donde quieras para usuarios normales
+                }
             } else {
-                navigate("/dashboard"); // O a donde quieras para usuarios normales
+                setError(data.message || "Credenciales incorrectas");
             }
-        } else {
-            alert(data.message);
+        } catch (err) {
+            setError("Error de conexión. Intenta de nuevo.");
         }
     };
     
@@ -90,6 +97,7 @@ const Login = () => {
         <div className={styles.loginContainer}>
             <div className={styles.loginBox}>
                 <h2>Iniciar Sesión</h2>
+                {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
                 <form className={styles.loginForm} onSubmit={handleSubmit}>
                     <input
                         type="text"

@@ -28,8 +28,9 @@ const Actividades = () => {
 
     const formatDate = (date) => {
         const d = new Date(date);
-        return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
-    };
+          d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+ };
 
 
     const handleDelete = async (id) => {
@@ -124,6 +125,8 @@ const Actividades = () => {
                             <option value="fumigar rolla" />
                             <option value="abonar" />
                             <option value="sembrar" />
+                            <option value="tronquiar" />
+                            <option value="fumigar gilote" />
                         </datalist>
 
                         <label>Fecha de Realización:</label>
