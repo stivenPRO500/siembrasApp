@@ -140,7 +140,7 @@ const diasDesdeSiembra = (manzana) => {
         return coincideBusqueda && coincideEstado;
     });
 
-    // ...existing code...
+   
    return (
     <div className={styles.dashboardContainer}>
         <div className={styles.topBar}>
@@ -176,7 +176,7 @@ const diasDesdeSiembra = (manzana) => {
                 </button>
             </div>
         </div>
-        {/* ...resto del código... */}
+        
     
             {/* Formulario para agregar manzanas */}
             <div className={styles.formAgregarManzana}>
@@ -265,6 +265,10 @@ const diasDesdeSiembra = (manzana) => {
                                 value={actividad.tipo}
                                 onChange={(e) => setActividad({ ...actividad, tipo: e.target.value })}
                                 required
+                                style={{ 
+                                    fontSize: '16px',  // Evita zoom en iOS
+                                    minHeight: '44px'  // Mejora touch en móvil
+                            }}
                             >
                                 <option value="" disabled hidden>Selecciona una actividad</option>
                                 <option value="fumigar gusano">Fumigar Gusano</option>
@@ -274,16 +278,24 @@ const diasDesdeSiembra = (manzana) => {
                                 <option value="tronquiar">Tronquiar</option>
                                 <option value="fumigar gilote">Fumigar Gilote</option>
                             </select>
+                            <label>Fecha de Realización</label>
                             <input
                                 type="date"
                                 value={actividad.fechaRealizacion}
                                 onChange={(e) => setActividad({ ...actividad, fechaRealizacion: e.target.value })}
                                 required
+                                style={{ fontSize: '16px', minHeight: '44px' }}
+                                placeholder="Fecha de Realización"
+                                title="Fecha de Realización"
                             />
+                            <label>Fecha de Alerta (Opcional)</label>
                             <input
                                 type="date"
                                 value={actividad.fechaAlerta}
                                 onChange={(e) => setActividad({ ...actividad, fechaAlerta: e.target.value })}
+                                style={{ fontSize: '16px', minHeight: '44px' }}
+                                placeholder="Fecha de Alerta"
+                                title="Fecha de Alerta"
                             />
                             <div style={{ display: "flex", justifyContent: "space-between" }}>
                                 <button type="submit">✅ Guardar Actividad</button>

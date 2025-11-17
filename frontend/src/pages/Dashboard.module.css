@@ -332,12 +332,13 @@
     justify-content: flex-start;
 }
 /* imagen de fondo*/
+/*
 .dashboardContainer {
     padding: 20px;
     background: url(.png) center center/cover no-repeat;
     min-height: 100vh;
     
-}
+}*/
 
 .contadorDias {
     margin-left: 60px;
