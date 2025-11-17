@@ -89,6 +89,8 @@ const Dashboard = () => {
     // Estados para búsqueda y filtro
     const [busqueda, setBusqueda] = useState("");
     const [filtroEstado, setFiltroEstado] = useState(""); // "" = todos, "rojo", "verde"
+    // Control de expansión de cada tarjeta de manzana
+    const [manzanasAbiertas, setManzanasAbiertas] = useState({}); // { [idManzana]: true }
 
     useEffect(() => {
         fetch(`${getBackendUrl()}/manzanas`)
@@ -314,44 +316,67 @@ const diasDesdeSiembra = (manzana) => {
                     // Convertir el objeto en array de actividades únicas por tipo
                     const actividadesFiltradas = Object.values(actividadesPorTipo);
 
+                                        const abierta = !!manzanasAbiertas[manzana._id];
+                                        const toggleManzana = () => {
+                                                setManzanasAbiertas(prev => ({
+                                                        ...prev,
+                                                        [manzana._id]: !prev[manzana._id]
+                                                }));
+                                        };
+
                     return (
-                        <div key={manzana._id} className={`${styles.manzanaCard} ${styles[manzana.estado] || ""}`}>
-                           <h2>
-                              {manzana.nombre}
-                              {/* Contador de días desde la última siembra */}
-                              {(() => {
-                               const dias = diasDesdeSiembra(manzana);
-                               return dias !== null ? (
-                                     <span className={styles.contadorDias}>
-                                       {dias} dias
-                                     </span>
-                               ) : null;
-                             })()}
-                           </h2>
-                            <p>{manzana.actividades.length} actividades realizadas</p>
-
-                            {/* Mostrar alerta SOLO si la manzana está en rojo y hay actividades pendientes */}
-                            {manzana.estado === "rojo" && manzana.actividades
-                                .filter(a => a.estado === "pendiente")
-                                .map(a => (
-                                    <p key={a._id} className={styles.alerta}>
-                                        ⚠️ Actividad pendiente: {a.tipo}
-                                    </p>
-                                ))
-                            }
-
-                            <div className={styles.cardButtons}>
-                                <button className={styles.btnAgregar} onClick={() => handleAgregarActividad(manzana._id)}>
-                                    Agregar
-                                </button>
-                                <button className={styles.btnEliminar} onClick={() => handleEliminarManzana(manzana._id)}>
-                                    Eliminar
-                                </button>
-                                <button className={styles.btnAccion} onClick={() => navigate(`/actividades/${manzana._id}`)}>
-                                    Ver
-                                </button>
-                            </div>
-                        </div>
+                                                <div
+                                                    key={manzana._id}
+                                                    className={`${styles.manzanaCard} ${styles[manzana.estado] || ""}`}
+                                                    style={{ cursor: 'pointer', position: 'relative' }}
+                                                    onClick={toggleManzana}
+                                                >
+                                                     <h2 style={{ marginTop: 0 }}>
+                                                            {manzana.nombre}
+                                                            {(() => {
+                                                                const dias = diasDesdeSiembra(manzana);
+                                                                return dias !== null ? (
+                                                                    <span className={styles.contadorDias}>{dias} dias</span>
+                                                                ) : null;
+                                                            })()}
+                                                     </h2>
+                                                     <p style={{ margin: '4px 0 8px' }}>{manzana.actividades.length} actividades realizadas</p>
+                                                     {!abierta && (
+                                                         <p style={{ fontSize: 12, opacity: .7, margin: 0 }}>Haz clic para ver acciones y actividades pendientes</p>
+                                                     )}
+                                                     {abierta && (
+                                                         <>
+                                                             {/* Mostrar alerta SOLO si la manzana está en rojo y hay actividades pendientes */}
+                                                             {manzana.estado === "rojo" && manzana.actividades
+                                                                 .filter(a => a.estado === "pendiente")
+                                                                 .map(a => (
+                                                                     <p key={a._id} className={styles.alerta}>
+                                                                         ⚠️ Actividad pendiente: {a.tipo}
+                                                                     </p>
+                                                                 ))}
+                                                             {/* Actividades vencidas (únicas por tipo) */}
+                                                             {actividadesFiltradas.length > 0 && (
+                                                                 <div style={{ marginBottom: 8 }}>
+                                                                     <strong style={{ fontSize: 13 }}>Actividades vencidas por tipo:</strong>
+                                                                     {actividadesFiltradas.map(a => (
+                                                                         <div key={a._id} style={{ fontSize: 12 }}>• {a.tipo}</div>
+                                                                     ))}
+                                                                 </div>
+                                                             )}
+                                                             <div className={styles.cardButtons} onClick={e => e.stopPropagation()}>
+                                                                 <button className={styles.btnAgregar} onClick={() => handleAgregarActividad(manzana._id)}>
+                                                                     Agregar
+                                                                 </button>
+                                                                 <button className={styles.btnEliminar} onClick={() => handleEliminarManzana(manzana._id)}>
+                                                                     Eliminar
+                                                                 </button>
+                                                                 <button className={styles.btnAccion} onClick={() => navigate(`/actividades/${manzana._id}`)}>
+                                                                     Ver
+                                                                 </button>
+                                                             </div>
+                                                         </>
+                                                     )}
+                                                </div>
                     );
                 })}
             </div>
