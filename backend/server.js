@@ -9,6 +9,7 @@ import catalogoRoutes from './routes/catalogoRoutes.js';
 import cosechaRoutes from './routes/cosechaRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 dotenv.config();
 const app = express();
@@ -26,10 +27,19 @@ app.use('/manzanas', manzanaRoutes);
 app.use('/actividades', actividadRoutes);
 app.use('/api/catalogo', catalogoRoutes);
 app.use('/cosechas', cosechaRoutes);
-// Servir archivos subidos
+// Servir archivos subidos (asegurar carpeta uploads)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    try {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        console.log('Carpeta uploads creada');
+    } catch (e) {
+        console.warn('No se pudo crear la carpeta uploads:', e.message);
+    }
+}
+app.use('/uploads', express.static(uploadsDir));
 
 
 mongoose.connect(process.env.MONGO_URI)
