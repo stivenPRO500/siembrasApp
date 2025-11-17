@@ -52,6 +52,7 @@ export default Login;*/
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.css";
+import { getBackendUrl } from '../utils/api';
 //import { getBackendUrl } from "../utils/api";
 
 const Login = () => {
@@ -65,7 +66,7 @@ const Login = () => {
         setError(""); // Limpiar errores previos
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND}/auth/login`, {
+            const res = await fetch(`${getBackendUrl()}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password }),

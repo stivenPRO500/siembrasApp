@@ -1,13 +1,63 @@
 import express from 'express';
 import Actividad from '../models/Actividad.js';
 import Manzana from '../models/Manzana.js';
+import Catalogo from '../models/Catalogo.js';
 
 const router = express.Router();
 
 // Crear una nueva actividad
 router.post("/", async (req, res) => {
     try {
-        const nuevaActividad = new Actividad(req.body);
+        // Calcular costos por producto y totales, soportando 'copas' para cualquier veneno
+        let costoProductos = 0;
+        let productosCalculados = [];
+
+        if (Array.isArray(req.body.productosUtilizados)) {
+            for (const item of req.body.productosUtilizados) {
+                const prod = await Catalogo.findById(item.producto);
+                if (!prod) {
+                    return res.status(400).json({ message: `Producto con ID ${item.producto} no encontrado.` });
+                }
+
+                const unidad = item.unidad || 'unidades';
+                let costoLinea = 0;
+
+                if (prod.tipo === 'veneno' && unidad === 'copas') {
+                    // costo por copa = precio / copasPorUnidad (o fallback por presentación)
+                    let copasPorUnidad = Number(prod.copasPorUnidad) || 0;
+                    if (!copasPorUnidad) {
+                        // Fallbacks: litro=40, galon~151.4, caneca~800, bolsa=40 (ajustable)
+                        if (prod.presentacion === 'litro') copasPorUnidad = 40;
+                        else if (prod.presentacion === 'galon') copasPorUnidad = 151.4;
+                        else if (prod.presentacion === 'caneca') copasPorUnidad = 800;
+                        else copasPorUnidad = 40;
+                    }
+                    const costoCopa = prod.precio / copasPorUnidad;
+                    costoLinea = costoCopa * Number(item.cantidad || 0);
+                } else {
+                    // unidades completas
+                    costoLinea = prod.precio * Number(item.cantidad || 0);
+                }
+
+                costoProductos += costoLinea;
+                productosCalculados.push({
+                    producto: prod._id,
+                    cantidad: Number(item.cantidad || 0),
+                    unidad,
+                    costo: Number(costoLinea.toFixed(2)),
+                });
+            }
+        }
+
+        const costoTrabajo = Number(req.body.costoTrabajo || 0);
+        const costoTotal = Number((costoProductos + costoTrabajo).toFixed(2));
+
+        const nuevaActividad = new Actividad({
+            ...req.body,
+            productosUtilizados: productosCalculados,
+            costoTrabajo,
+            costoTotal,
+        });
         const actividadGuardada = await nuevaActividad.save();
 
         // Agregar la actividad a la manzana correspondiente
@@ -39,7 +89,6 @@ router.post("/", async (req, res) => {
         res.status(500).json({ message: "Error al crear la actividad", error });
     }
 });
-
 
 // Obtener todas las actividades
 router.get('/', async (req, res) => {
@@ -76,6 +125,7 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: "Error al eliminar la actividad", error });
     }
 });
+
 // En tu controlador
 router.get('/:id', async (req, res) => {
     try {
@@ -88,6 +138,5 @@ router.get('/:id', async (req, res) => {
 
 // Revisar y actualizar estado de actividades
 
-
-
 export default router;
+

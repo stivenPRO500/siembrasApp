@@ -9,11 +9,11 @@ global.TextDecoder = TextDecoder;
 // Configurar entorno de test para llamadas reales
 process.env.NODE_ENV = 'test';
 // Usar tu backend de Render para tests reales
-process.env.VITE_BACKEND = 'https://siembras-app-backend.onrender.com';
+process.env.VITE_BACKEND = 'https://siembrasappback.onrender.com';
 
 // Mock window para entorno de test
 global.window = global.window || {};
-window.__VITE_BACKEND__ = 'https://siembras-app-backend.onrender.com';
+window.__VITE_BACKEND__ = 'https://siembrasappback.onrender.com';
 
 // Mock window.alert para evitar errores de jsdom
 window.alert = jest.fn();

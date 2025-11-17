@@ -26,7 +26,7 @@ export default {
     'import': {
       meta: {
         env: {
-          VITE_BACKEND: 'http://localhost:4000'
+          VITE_BACKEND: 'https://siembrasappback.onrender.com'
         }
       }
     }

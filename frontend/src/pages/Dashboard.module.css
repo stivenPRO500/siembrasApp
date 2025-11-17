@@ -98,7 +98,7 @@
   }
   
   .modalContent {
-    background-color: #fdf7f7;
+    background-color: #fefcfc;
     padding: 30px;
     border-radius: 8px;
     width: 100%;
@@ -106,6 +106,27 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     animation: fadeIn 0.3s ease-out;
   }
+    /* Layout del formulario para scroll interno y control del espacio */
+    .modalContent form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        max-height: 70vh;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+    .modalContent form::-webkit-scrollbar { width: 6px; }
+    .modalContent form::-webkit-scrollbar-track { background: #f1f1f1; }
+    .modalContent form::-webkit-scrollbar-thumb { background: #c3c3c3; border-radius: 3px; }
+    /* Contenedor de botones */
+    .modalActions {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 4px;
+        flex-wrap: nowrap;
+    }
+    .modalActions button { flex: 1 1 auto; }
   
   h2 {
     font-size: 1.5rem;
@@ -125,7 +146,7 @@
   }
 
   select {
-    width: 105%;
+        width: 100%;
     padding: 12px;
     margin-bottom: 15px;
     border-radius: 8px;
@@ -331,14 +352,7 @@
     margin-bottom: 0;
     justify-content: flex-start;
 }
-/* imagen de fondo*/
-/*
-.dashboardContainer {
-    padding: 20px;
-    background: url(.png) center center/cover no-repeat;
-    min-height: 100vh;
-    
-}*/
+
 
 .contadorDias {
     margin-left: 60px;
@@ -352,7 +366,44 @@
   border-radius: 50%;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
-/*
-font-size: 1.5rem;
-    margin-bottom: 20px;
-    color: #100f0f;*/
+.modal label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+/* Responsive ajustes para móviles */
+@media (max-width: 600px) {
+    .dashboardContainer { padding: 8px; }
+    .topBar { padding: 10px 14px; gap: 12px; }
+    .titulo { font-size: 1.6rem; letter-spacing: 0.5px; }
+    .manzanasGrid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .manzanaCard { padding: 10px; display: flex; flex-direction: column; }
+    .cardButtons { flex-wrap: wrap; gap: 6px; }
+    .btnAgregarManzana, .btnAgregar, .btnEliminar, .btnAccion { padding: 5px 8px; font-size: 0.7rem; }
+    .searchInput { min-width: 140px; font-size: 0.75rem; padding: 6px 26px 6px 26px; }
+    .searchIcon { font-size: 0.9rem; left: 8px; }
+    .contadorDias { margin-left: 6px; font-size: 9px; width: 18px; height: 18px; }
+    .modalContent { padding: 14px 16px; max-width: 300px; }
+    .modalContent h2 { font-size: 1rem; margin-bottom: 10px; }
+    .modalContent form { gap: 8px; }
+    .modalActions { flex-wrap: wrap; }
+    .modalActions button { flex: 1 1 100%; }
+    .modalContent select, .modalContent input { font-size: 0.7rem; padding: 6px 8px; min-height: 32px; }
+    .modalContent button { font-size: 0.65rem; padding: 6px 10px; }
+    input, select { font-size: 0.75rem; padding: 8px; }
+    button { font-size: 0.75rem; padding: 8px 12px; }
+}
+@media (max-width: 400px) {
+    .titulo { font-size: 1.3rem; }
+    .manzanasGrid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 8px; }
+    .btnAgregarManzana, .btnAgregar, .btnEliminar, .btnAccion { font-size: 0.65rem; padding: 4px 6px; }
+    .searchInput { min-width: 120px; font-size: 0.7rem; }
+    .manzanaCard { padding: 8px; }
+    .cardButtons { gap: 4px; }
+    .modalContent { max-width: 250px; padding: 10px 12px; }
+    .modalContent h2 { font-size: 0.9rem; }
+    .modalContent select, .modalContent input { font-size: 0.65rem; padding: 5px 6px; min-height: 30px; }
+    .modalContent button { font-size: 0.6rem; padding: 5px 8px; }
+    .modalActions { flex-direction: column; gap: 6px; }
+    .modalActions button { width: 100%; }
+}

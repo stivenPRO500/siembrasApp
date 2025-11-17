@@ -1,6 +1,7 @@
 import express from 'express';
 import Manzana from '../models/Manzana.js';
 import Actividad from "../models/Actividad.js";
+import Cosecha from '../models/Cosecha.js';
 const router = express.Router();
 
 // Crear una nueva manzana
@@ -118,3 +119,40 @@ router.get("/estado", async (req, res) => {
 
 
 export default router;
+
+// Ruta para cosechar (debe ir antes de export en ESM? - añadir arriba de export but patch easier here)
+router.post('/cosechar/:id', async (req, res) => {
+    try {
+        const manzana = await Manzana.findById(req.params.id).populate('actividades');
+        if (!manzana) return res.status(404).json({ message: 'Manzana no encontrada' });
+
+        const actividadesSnapshot = manzana.actividades.map(a => ({
+            tipo: a.tipo,
+            fechaRealizacion: a.fechaRealizacion,
+            costoTotal: a.costoTotal || 0,
+            productosUtilizados: (a.productosUtilizados || []).map(p => ({
+                producto: p.producto,
+                cantidad: p.cantidad,
+                costo: p.costo
+            })),
+            costoTrabajo: a.costoTrabajo || 0
+        }));
+        const totalCosto = actividadesSnapshot.reduce((acc, act) => acc + (act.costoTotal || 0), 0);
+
+        const cosecha = await Cosecha.create({
+            manzana: manzana._id,
+            actividades: actividadesSnapshot,
+            totalCosto
+        });
+
+        // Borrar actividades y limpiar referencia
+        await Actividad.deleteMany({ _id: { $in: manzana.actividades } });
+        manzana.actividades = [];
+        manzana.estado = 'verde';
+        await manzana.save();
+
+        res.json({ message: 'Cosecha realizada', cosecha });
+    } catch (error) {
+        res.status(500).json({ message: 'Error al cosechar', error: error.message });
+    }
+});

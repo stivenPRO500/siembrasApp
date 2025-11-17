@@ -23,12 +23,13 @@ function App() {
 
 export default App;*/
 
-
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Actividades from "./pages/Actividades"; // ✅ Importar la página de actividades
+import Catalogo from "./pages/Catalogo"; // ✅ Catálogo de productos
+import Cosechas from "./pages/Cosechas"; // ✅ Página de cosechas
 import AgregarUsuario from "./pages/AgregarUsuario";
 import PrivateRoute from "./routes/PrivateRoute";
 
@@ -43,10 +44,11 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/actividades/:manzanaId" element={<Actividades />} /> {/* ✅ Agregado */}
                 <Route path="/agregar-usuario" element={<AgregarUsuario />} /> {/* ✅ Nueva ruta */}
+                <Route path="/catalogo" element={<Catalogo />} /> {/* ✅ Catálogo */}
+                <Route path="/cosechas" element={<Cosechas />} /> {/* ✅ Cosechas */}
             </Route>
         </Routes>
     );
 }
 
 export default App;
-

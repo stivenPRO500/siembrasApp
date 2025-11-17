@@ -1,0 +1,67 @@
+.catalogoContainer { padding:16px; }
+.topBarCat { margin-bottom:16px; }
+.catalogoGrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
+.catalogoCard { background:linear-gradient(145deg,#121212,#1f1f1f); color:#fff; border-radius:16px; padding:16px; box-shadow:0 6px 24px rgba(0,0,0,0.45); display:flex; flex-direction:column; position:relative; overflow:hidden; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.06); }
+.catalogoCard::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 30% 20%,rgba(255,255,255,0.08),transparent 60%); pointer-events:none; }
+.catalogoImg { width:100%; height:140px; object-fit:cover; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.4); }
+.catalogoBtnRow { display:flex; gap:10px; margin-top:auto; }
+/* Form styles modern */
+.formWrap, .editWrap { display:grid; gap:16px; max-width:520px; padding:20px 22px; border-radius:18px; background:linear-gradient(160deg,rgba(29,29,32,0.95),rgba(45,45,50,0.92)); box-shadow:0 8px 34px -6px rgba(0,0,0,0.55); border:1px solid rgba(255,255,255,0.08); backdrop-filter:blur(10px); animation:fadeInForm .4s ease; }
+.editWrap { margin-top:20px; }
+@keyframes fadeInForm { from { opacity:0; transform:translateY(8px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+/* Internal grid for wider screens */
+@media (min-width:680px){
+  .formWrap:not(.noGrid), .editWrap:not(.noGrid){ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .formWrap input[type=file], .editWrap input[type=file], .uploadBlock, .formActions, .previewImage { grid-column:1 / -1; }
+}
+/* Make specific fields span full width for better breathing space */
+.fieldFull { grid-column:1 / -1; }
+/* Group two related fields together and keep them aligned */
+.row2 { grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+@media (max-width:680px){ .row2 { grid-template-columns:1fr; } }
+/* Inputs */
+.formWrap input, .formWrap select, .editWrap input, .editWrap select { width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.06); color:#0e0e0e; font-size:0.9rem; outline:none; transition: border-color .25s, background .25s, box-shadow .25s; }
+.formWrap input::placeholder, .editWrap input::placeholder { color:#9da2ad; }
+.formWrap select { cursor:pointer; }
+.formWrap input:focus, .formWrap select:focus, .editWrap input:focus, .editWrap select:focus { border-color:#4cc957; background:rgba(255,255,255,0.12); box-shadow:0 0 0 3px rgba(76,201,87,0.25); }
+
+/* Upload block */
+.uploadBlock { display:grid; gap:6px; padding:10px 12px; background:rgba(255,255,255,0.04); border:1px dashed rgba(255,255,255,0.15); border-radius:14px; }
+.uploadBlock label { font-size:11px; letter-spacing:.5px; text-transform:uppercase; opacity:.85; }
+.uploadBlock input[type=file]{ border:none; background:transparent; padding:0; }
+.previewImage { width:100%; max-height:180px; object-fit:cover; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.5); }
+
+/* Buttons */
+.formWrap button, .editWrap button { border:none; border-radius:12px; padding:12px 16px; font-size:0.8rem; font-weight:600; letter-spacing:.5px; cursor:pointer; background:linear-gradient(135deg,#1fa52e,#b6ff3b); color:#0e120d; box-shadow:0 4px 14px -4px rgba(0,0,0,0.55); transition:transform .25s, box-shadow .25s; }
+.formWrap button:hover, .editWrap button:hover { transform:translateY(-2px); box-shadow:0 8px 24px -6px rgba(0,0,0,0.55); }
+.formWrap button:active, .editWrap button:active { transform:translateY(0); box-shadow:0 4px 14px -4px rgba(0,0,0,0.55); }
+.dangerBtn { background:linear-gradient(135deg,#ff3d3d,#ff9d5a); color:#fff; }
+.dangerBtn:hover { box-shadow:0 8px 20px -4px rgba(255,61,61,0.4); }
+
+.formActions { display:flex; gap:12px; grid-column:1 / -1; }
+.formActions button { flex:1; min-width:0; }
+@media (max-width:480px){ .formActions { flex-direction:column; } }
+
+/* Headings */
+.formWrap h4, .editWrap h4 { margin:0 0 4px; font-weight:600; font-size:1.05rem; letter-spacing:.5px; color:#e4e7ec; }
+
+/* Existing list card buttons adjustments inside catalog cards */
+.catalogoBtnRow button { flex:1; border:none; border-radius:10px; padding:8px 10px; font-size:0.75rem; font-weight:600; background:linear-gradient(130deg,#216ba5,#33b778); color:#fff; box-shadow:0 4px 16px -4px rgba(0,0,0,0.5); transition:filter .25s, transform .25s; }
+.catalogoBtnRow button:hover { filter:brightness(1.15); transform:translateY(-2px); }
+.catalogoBtnRow button:active { transform:translateY(0); }
+@media (max-width:600px){
+  .catalogoContainer { padding:10px; }
+  .catalogoGrid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+  .catalogoCard { padding:12px; }
+  .catalogoImg { height:100px; }
+  .formWrap, .editWrap { max-width:100%; padding:14px 16px; }
+  .formWrap input, .formWrap select, .editWrap input, .editWrap select { padding:10px 12px; font-size:0.8rem; }
+  .catalogoBtnRow button { padding:6px 8px; font-size:0.6rem; }
+}
+@media (max-width:400px){
+  .catalogoGrid { grid-template-columns:repeat(auto-fill,minmax(135px,1fr)); gap:8px; }
+  .catalogoCard { padding:8px; }
+  .catalogoImg { height:90px; }
+  .catalogoBtnRow { gap:6px; flex-wrap:wrap; }
+  .catalogoBtnRow button { padding:4px 6px; font-size:0.55rem; }
+}

@@ -2,7 +2,7 @@
 export const getBackendUrl = () => {
   // En testing, usar process.env para llamadas reales
   if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') {
-    return process.env.VITE_BACKEND || 'https://siembras-app-backend.onrender.com';
+    return process.env.VITE_BACKEND || 'https://siembrasappback.onrender.com';
   }
   
   // En producción/desarrollo, usar variable global definida por Vite
@@ -11,5 +11,5 @@ export const getBackendUrl = () => {
   }
   
   // Fallback a tu backend de Render
-  return 'https://siembras-app-backend.onrender.com';
+  return 'https://siembrasappback.onrender.com';
 };

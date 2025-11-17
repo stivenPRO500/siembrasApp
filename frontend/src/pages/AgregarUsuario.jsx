@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "./AgregarUsuario.module.css";
 import { useNavigate } from "react-router-dom";
+import { getBackendUrl } from '../utils/api';
 
 
 
@@ -30,7 +31,7 @@ const AgregarUsuario = () => {
 
     const fetchUsuarios = async (authToken) => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND}/auth/usuarios`, {
+            const res = await fetch(`${getBackendUrl()}/auth/usuarios`, {
                 headers: { Authorization: `Bearer ${authToken}` },
             });
             const data = await res.json();
@@ -50,7 +51,7 @@ const AgregarUsuario = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND}/auth/crear`, {
+            const response = await fetch(`${getBackendUrl()}/auth/crear`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -78,7 +79,7 @@ const AgregarUsuario = () => {
         if (!window.confirm("¿Estás seguro de eliminar este usuario?")) return;
 
         try {
-            const res = await fetch(`${import.meta.env.VITE_BACKEND}/auth/usuarios/${id}`, {
+            const res = await fetch(`${getBackendUrl()}/auth/usuarios/${id}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,
