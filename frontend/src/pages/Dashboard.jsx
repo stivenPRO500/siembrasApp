@@ -340,10 +340,7 @@ const diasDesdeSiembra = (manzana) => {
                                                                 ) : null;
                                                             })()}
                                                      </h2>
-                                                     <p style={{ margin: '4px 0 8px' }}>{manzana.actividades.length} actividades realizadas</p>
-                                                     {!abierta && (
-                                                         <p style={{ fontSize: 12, opacity: .7, margin: 0 }}>Haz clic para ver acciones y actividades pendientes</p>
-                                                     )}
+                                                                                 <p style={{ margin: '4px 0 8px' }}>{manzana.actividades.length} actividades realizadas</p>
                                                      {abierta && (
                                                          <>
                                                              {/* Mostrar alerta SOLO si la manzana está en rojo y hay actividades pendientes */}
@@ -354,15 +351,6 @@ const diasDesdeSiembra = (manzana) => {
                                                                          ⚠️ Actividad pendiente: {a.tipo}
                                                                      </p>
                                                                  ))}
-                                                             {/* Actividades vencidas (únicas por tipo) */}
-                                                             {actividadesFiltradas.length > 0 && (
-                                                                 <div style={{ marginBottom: 8 }}>
-                                                                     <strong style={{ fontSize: 13 }}>Actividades vencidas por tipo:</strong>
-                                                                     {actividadesFiltradas.map(a => (
-                                                                         <div key={a._id} style={{ fontSize: 12 }}>• {a.tipo}</div>
-                                                                     ))}
-                                                                 </div>
-                                                             )}
                                                              <div className={styles.cardButtons} onClick={e => e.stopPropagation()}>
                                                                  <button className={styles.btnAgregar} onClick={() => handleAgregarActividad(manzana._id)}>
                                                                      Agregar
