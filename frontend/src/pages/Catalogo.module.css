@@ -49,6 +49,47 @@
 .catalogoBtnRow button { flex:1; border:none; border-radius:10px; padding:8px 10px; font-size:0.75rem; font-weight:600; background:linear-gradient(130deg,#216ba5,#33b778); color:#fff; box-shadow:0 4px 16px -4px rgba(0,0,0,0.5); transition:filter .25s, transform .25s; }
 .catalogoBtnRow button:hover { filter:brightness(1.15); transform:translateY(-2px); }
 .catalogoBtnRow button:active { transform:translateY(0); }
+/* Modal overlay and modal for add/edit product */
+.modalOverlayCatalogo {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(3px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+  animation:fadeInOverlay .25s ease;
+}
+@keyframes fadeInOverlay { from { opacity:0; } to { opacity:1; } }
+.modalCatalogo {
+  width:100%;
+  max-width:560px;
+  position:relative;
+  background:linear-gradient(165deg,#1b1d20,#292d33);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:22px;
+  padding:28px 30px 26px;
+  box-shadow:0 18px 42px -8px rgba(0,0,0,0.65);
+  color:#e6e9ee;
+  animation:popInModal .35s cubic-bezier(.16,.8,.33,1);
+}
+@keyframes popInModal { from { opacity:0; transform:translateY(18px) scale(.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+.cerrarModalBtn {
+  position:absolute;
+  top:10px; right:12px;
+  background:rgba(255,255,255,0.08);
+  border:none;
+  color:#fff;
+  font-size:0.75rem;
+  padding:6px 10px;
+  border-radius:10px;
+  cursor:pointer;
+  letter-spacing:.5px;
+  transition:background .25s, transform .25s;
+}
+.cerrarModalBtn:hover { background:rgba(255,255,255,0.18); transform:translateY(-2px); }
+.cerrarModalBtn:active { transform:translateY(0); }
 @media (max-width:600px){
   .catalogoContainer { padding:10px; }
   .catalogoGrid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }

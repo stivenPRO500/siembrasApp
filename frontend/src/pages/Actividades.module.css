@@ -110,6 +110,16 @@
     box-shadow:0 4px 12px rgba(0,0,0,0.08);
 }
 
+/* Moneda: asegura que la Q se vea claramente y no parezca P en algunos pesos/fuentes */
+.moneda {
+    font-family: inherit; /* usar la misma fuente del resto para que no se vea "rara" */
+    font-weight: 600; /* un poco más marcada para distinguir la colita de la Q */
+    letter-spacing: 0.25px; /* sutil separación */
+    display: inline-block;
+    color: #090c0f;
+    transform: translateY(-1px); /* leve ajuste vertical para alinearse con números */
+}
+
 /* Responsive: hasta 600px */
 @media (max-width:600px) {
     .actividadesContainer { padding:10px; box-shadow:none; }

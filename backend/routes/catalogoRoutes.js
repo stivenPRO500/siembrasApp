@@ -86,6 +86,10 @@ router.post('/', async (req, res) => {
     if (body.tipo === 'veneno' && body.copasPorUnidad !== undefined) {
       body.copasPorUnidad = Number(body.copasPorUnidad) || 0;
     }
+    if (body.tipo === 'semillas' && body.librasPorBolsa !== undefined) {
+      body.librasPorBolsa = Number(body.librasPorBolsa) || 0;
+    }
+    // nota se guarda tal cual
     const nuevoProducto = new Catalogo(body);
     const productoGuardado = await nuevoProducto.save();
     res.status(201).json(productoGuardado);
@@ -97,7 +101,7 @@ router.post('/', async (req, res) => {
 // Subida con imagen de archivo
 router.post('/upload', upload.single('imagen'), async (req, res) => {
   try {
-    const { nombre, tipo, precio, presentacion, copasPorUnidad } = req.body;
+    const { nombre, tipo, precio, presentacion, copasPorUnidad, librasPorBolsa, nota } = req.body;
     let imagenUrl;
     if (req.file) {
       if (useCloudinary) {
@@ -116,8 +120,10 @@ router.post('/upload', upload.single('imagen'), async (req, res) => {
       nombre,
       tipo,
       precio: Number(precio) || 0,
-      presentacion: tipo === 'veneno' ? presentacion : undefined,
+      presentacion: (tipo === 'veneno' || tipo === 'semillas') ? presentacion : undefined,
       copasPorUnidad: tipo === 'veneno' ? (Number(copasPorUnidad) || 0) : undefined,
+      librasPorBolsa: tipo === 'semillas' ? (Number(librasPorBolsa) || 0) : undefined,
+      nota: nota,
       imagen: imagenUrl
     });
     res.status(201).json(doc);
@@ -132,6 +138,8 @@ router.put('/:id', async (req, res) => {
     const body = { ...req.body };
     if (body.precio !== undefined) body.precio = Number(body.precio) || 0;
     if (body.copasPorUnidad !== undefined) body.copasPorUnidad = Number(body.copasPorUnidad) || 0;
+    if (body.librasPorBolsa !== undefined) body.librasPorBolsa = Number(body.librasPorBolsa) || 0;
+    // nota se pasa directo
     const productoActualizado = await Catalogo.findByIdAndUpdate(req.params.id, body, { new: true });
     res.json(productoActualizado);
   } catch (error) {
@@ -142,12 +150,16 @@ router.put('/:id', async (req, res) => {
 // Actualizar con nueva imagen
 router.put('/:id/upload', upload.single('imagen'), async (req, res) => {
   try {
-    const { nombre, tipo, precio, presentacion, copasPorUnidad } = req.body;
-    const update = { nombre, tipo };
+    const { nombre, tipo, precio, presentacion, copasPorUnidad, librasPorBolsa, nota } = req.body;
+    const update = { nombre, tipo, nota };
     if (precio !== undefined) update.precio = Number(precio) || 0;
     if (tipo === 'veneno') {
       if (presentacion !== undefined) update.presentacion = presentacion;
       if (copasPorUnidad !== undefined) update.copasPorUnidad = Number(copasPorUnidad) || 0;
+    }
+    if (tipo === 'semillas') {
+      if (presentacion !== undefined) update.presentacion = presentacion;
+      if (librasPorBolsa !== undefined) update.librasPorBolsa = Number(librasPorBolsa) || 0;
     }
     if (req.file) {
       if (useCloudinary) {

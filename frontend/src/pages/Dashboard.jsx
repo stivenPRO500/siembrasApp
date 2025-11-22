@@ -14,51 +14,76 @@ function ProductoPicker({ productosCatalogo, productosSeleccionados, onAdd }) {
     const prodSel = productosCatalogo.find((p) => p._id === productoId);
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-            <select value={productoId} onChange={(e) => setProductoId(e.target.value)}>
-                <option value="">Selecciona un producto</option>
-                {opciones.map((p) => (
-                    <option key={p._id} value={p._id}>{p.nombre} {p.presentacion ? `(${p.presentacion})` : ''}</option>
-                ))}
-            </select>
-            <input type="number" min="0" step="0.01" placeholder="Cantidad" value={cantidad} onChange={(e) => setCantidad(parseFloat(e.target.value))} />
-            {prodSel && prodSel.tipo === 'veneno' ? (
-                <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>
-                    <option value="copas">Copas</option>
-                    <option value="unidades">Unidades</option>
+        <div style={{ marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                <select value={productoId} onChange={(e) => {
+                    const id = e.target.value;
+                    setProductoId(id);
+                    const p = productosCatalogo.find(pp => pp._id === id);
+                    if (p?.tipo === 'veneno') setUnidad('copas');
+                    else if (p?.tipo === 'semillas') setUnidad('libras');
+                    else setUnidad('unidades');
+                }}>
+                    <option value="">Selecciona un producto</option>
+                    {opciones.map((p) => (
+                        <option key={p._id} value={p._id}>{p.nombre} {p.presentacion ? `(${p.presentacion})` : ''}</option>
+                    ))}
                 </select>
-            ) : (
-                <span style={{ fontSize: 12, color: '#666' }}>{prodSel?.presentacion || 'unidades'}</span>
-            )}
-            <button type="button" onClick={() => {
-                if (!productoId) return;
-                onAdd({ producto: productoId, cantidad: Number(cantidad) || 0, unidad });
-                setProductoId(""); setCantidad(0); setUnidad('copas');
-            }}>Agregar</button>
+                <input type="number" min="0" step="0.01" placeholder="Cantidad" value={cantidad} onChange={(e) => setCantidad(parseFloat(e.target.value))} />
+                {prodSel && prodSel.tipo === 'veneno' ? (
+                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>
+                        <option value="copas">Copas</option>
+                        <option value="unidades">Unidades</option>
+                    </select>
+                ) : prodSel && prodSel.tipo === 'semillas' ? (
+                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>
+                        <option value="libras">Libras</option>
+                        <option value="unidad">Unidad</option>
+                    </select>
+                ) : (
+                    <span style={{ fontSize: 12, color: '#666' }}>{prodSel?.presentacion || 'unidades'}</span>
+                )}
+            </div>
+            <div>
+                <button type="button" className={styles.btnAgregarManzana} onClick={() => {
+                    if (!productoId) return;
+                    const prod = productosCatalogo.find(p => p._id === productoId);
+                    let unidadEnviar = 'unidades';
+                    if (prod) {
+                        if (prod.tipo === 'veneno') unidadEnviar = unidad;
+                        else if (prod.tipo === 'semillas') unidadEnviar = unidad; // libras o presentaciones
+                        else unidadEnviar = 'unidades';
+                    }
+                    onAdd({ producto: productoId, cantidad: Number(cantidad) || 0, unidad: unidadEnviar });
+                    setProductoId(""); setCantidad(0); setUnidad('copas');
+                }}>Agregar producto</button>
+            </div>
         </div>
     );
 }
 
 // Lista de productos ya seleccionados con edición
-function ListaSeleccionados({ productosCatalogo, seleccionados, onCantidad, onUnidad, onRemove }) {
+function ListaSeleccionados({ productosCatalogo, seleccionados, onRemove }) {
     return (
-        <div>
+        <div style={{ marginTop: 4 }}>
             {seleccionados.map((sel) => {
                 const prod = productosCatalogo.find((p) => p._id === sel.producto);
                 if (!prod) return null;
+                let unidadMostrar;
+                if (prod.tipo === 'veneno') {
+                    unidadMostrar = sel.unidad || 'copas';
+                } else if (prod.tipo === 'semillas') {
+                    unidadMostrar = sel.unidad === 'libras' ? 'libras' : (prod.presentacion || 'presentaciones');
+                } else {
+                    unidadMostrar = prod.presentacion || 'unidades';
+                }
+                const cantidadTexto = `${Number(sel.cantidad || 0)} ${unidadMostrar}`;
                 return (
-                    <div key={sel.producto} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px auto', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                        <div>{prod.nombre} {prod.presentacion ? `(${prod.presentacion})` : ''}</div>
-                        <input type="number" min="0" step="0.01" value={sel.cantidad} onChange={(e) => onCantidad(sel.producto, parseFloat(e.target.value))} />
-                        {prod.tipo === 'veneno' ? (
-                            <select value={sel.unidad || 'copas'} onChange={(e) => onUnidad(sel.producto, e.target.value)}>
-                                <option value="copas">Copas</option>
-                                <option value="unidades">Unidades</option>
-                            </select>
-                        ) : (
-                            <span style={{ fontSize: 12, color: '#666' }}>{prod.presentacion || 'unidades'}</span>
-                        )}
-                        <button type="button" onClick={() => onRemove(sel.producto)}>Quitar</button>
+                    <div key={sel.producto} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 6px', background: '#fff', color: '#000', border: '1px solid #ddd', borderRadius: 6, marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, color: '#000' }}>
+                            {prod.nombre} {prod.presentacion ? `(${prod.presentacion})` : ''} - {cantidadTexto}
+                        </span>
+                        <button type="button" onClick={() => onRemove(sel.producto)} style={{ background: '#c0392b', color: '#fff', border: 'none', padding: '4px 8px', borderRadius: 4, cursor: 'pointer' }}>Quitar</button>
                     </div>
                 );
             })}
@@ -430,21 +455,11 @@ const diasDesdeSiembra = (manzana) => {
                                     <ListaSeleccionados
                                         productosCatalogo={productosCatalogo}
                                         seleccionados={productosSeleccionados}
-                                        onCantidad={(id, cant) => setProductosSeleccionados((prev) => {
-                                            const idx = prev.findIndex((p) => p.producto === id);
-                                            const up = [...prev];
-                                            if (idx !== -1) up[idx].cantidad = cant; return up;
-                                        })}
-                                        onUnidad={(id, unidad) => setProductosSeleccionados((prev) => {
-                                            const idx = prev.findIndex((p) => p.producto === id);
-                                            const up = [...prev];
-                                            if (idx !== -1) up[idx].unidad = unidad; return up;
-                                        })}
                                         onRemove={(id) => setProductosSeleccionados((prev) => prev.filter((p) => p.producto !== id))}
                                     />
                                     <div style={{ marginTop: 8 }}>
-                                        <label style={{ display: 'block', marginBottom: 4 }}>Costo de trabajo</label>
-                                        <input type="number" step="0.01" min="0" value={costoTrabajo} onChange={(e) => setCostoTrabajo(parseFloat(e.target.value))} />
+                                        <label style={{ display: 'block', marginBottom: 4 }}>Costo de trabajo (Q.)</label>
+                                        <input type="number" step="1" min="0" value={costoTrabajo} onChange={(e) => setCostoTrabajo(parseInt(e.target.value,10) )} />
                                     </div>
                                 </div>
                             )}

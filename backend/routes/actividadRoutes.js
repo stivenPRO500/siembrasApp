@@ -34,8 +34,13 @@ router.post("/", async (req, res) => {
                     }
                     const costoCopa = prod.precio / copasPorUnidad;
                     costoLinea = costoCopa * Number(item.cantidad || 0);
+                } else if (prod.tipo === 'semillas' && unidad === 'libras') {
+                    // costo por libra = precio / librasPorBolsa
+                    const librasPorBolsa = Number(prod.librasPorBolsa) || 1;
+                    const costoPorLibra = prod.precio / librasPorBolsa;
+                    costoLinea = costoPorLibra * Number(item.cantidad || 0);
                 } else {
-                    // unidades completas
+                    // unidades completas (presentaciones completas)
                     costoLinea = prod.precio * Number(item.cantidad || 0);
                 }
 
@@ -103,10 +108,70 @@ router.get('/', async (req, res) => {
 // Actualizar una actividad
 router.put('/:id', async (req, res) => {
     try {
-        const actividadActualizada = await Actividad.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const actividadExistente = await Actividad.findById(req.params.id);
+        if (!actividadExistente) {
+            return res.status(404).json({ message: 'Actividad no encontrada' });
+        }
+
+        // Recalcular costos si vienen productosUtilizados o costoTrabajo
+        let productosCalculados = actividadExistente.productosUtilizados || [];
+        if (Array.isArray(req.body.productosUtilizados)) {
+            productosCalculados = [];
+            let costoProductos = 0;
+            for (const item of req.body.productosUtilizados) {
+                const prod = await Catalogo.findById(item.producto);
+                if (!prod) {
+                    return res.status(400).json({ message: `Producto con ID ${item.producto} no encontrado.` });
+                }
+                const unidad = item.unidad || 'unidades';
+                let costoLinea = 0;
+                if (prod.tipo === 'veneno' && unidad === 'copas') {
+                    let copasPorUnidad = Number(prod.copasPorUnidad) || 0;
+                    if (!copasPorUnidad) {
+                        if (prod.presentacion === 'litro') copasPorUnidad = 40;
+                        else if (prod.presentacion === 'galon') copasPorUnidad = 151.4;
+                        else if (prod.presentacion === 'caneca') copasPorUnidad = 800;
+                        else copasPorUnidad = 40;
+                    }
+                    const costoCopa = prod.precio / copasPorUnidad;
+                    costoLinea = costoCopa * Number(item.cantidad || 0);
+                } else if (prod.tipo === 'semillas' && unidad === 'libras') {
+                    const costoPorLibra = prod.precio / (prod.librasPorBolsa || 1);
+                    costoLinea = costoPorLibra * Number(item.cantidad || 0);
+                } else {
+                    costoLinea = prod.precio * Number(item.cantidad || 0);
+                }
+                costoProductos += costoLinea;
+                productosCalculados.push({
+                    producto: prod._id,
+                    cantidad: Number(item.cantidad || 0),
+                    unidad,
+                    costo: Number(costoLinea.toFixed(2))
+                });
+            }
+            req.body.costoTrabajo = Number(req.body.costoTrabajo || 0);
+            req.body.costoTotal = Number((costoProductos + req.body.costoTrabajo).toFixed(2));
+        } else if (typeof req.body.costoTrabajo !== 'undefined') {
+            // Si sólo actualiza costoTrabajo recalcular costoTotal con productos previos
+            const costoProductosPrevio = productosCalculados.reduce((acc, p) => acc + Number(p.costo || 0), 0);
+            req.body.costoTrabajo = Number(req.body.costoTrabajo || 0);
+            req.body.costoTotal = Number((costoProductosPrevio + req.body.costoTrabajo).toFixed(2));
+        }
+
+        // Preparar objeto de actualización
+        const update = {
+            tipo: req.body.tipo ?? actividadExistente.tipo,
+            fechaRealizacion: req.body.fechaRealizacion ?? actividadExistente.fechaRealizacion,
+            fechaAlerta: req.body.fechaAlerta ?? actividadExistente.fechaAlerta,
+            productosUtilizados: productosCalculados,
+            costoTrabajo: typeof req.body.costoTrabajo !== 'undefined' ? req.body.costoTrabajo : actividadExistente.costoTrabajo,
+            costoTotal: typeof req.body.costoTotal !== 'undefined' ? req.body.costoTotal : actividadExistente.costoTotal,
+        };
+
+        const actividadActualizada = await Actividad.findByIdAndUpdate(req.params.id, update, { new: true });
         res.json(actividadActualizada);
     } catch (error) {
-        res.status(500).json({ message: "Error al actualizar la actividad", error });
+        res.status(500).json({ message: 'Error al actualizar la actividad', error });
     }
 });
 

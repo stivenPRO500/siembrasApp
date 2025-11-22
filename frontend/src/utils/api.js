@@ -1,15 +1,6 @@
 // Helper para obtener la URL del backend
 export const getBackendUrl = () => {
-  // En testing, usar process.env para llamadas reales
-  if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') {
-    return process.env.VITE_BACKEND || 'https://siembrasappback.onrender.com';
-  }
-  
-  // En producción/desarrollo, usar variable global definida por Vite
-  if (typeof window !== 'undefined' && window.__VITE_BACKEND__) {
-    return window.__VITE_BACKEND__;
-  }
-  
-  // Fallback a tu backend de Render
-  return 'https://siembrasappback.onrender.com';
+  // Vite expone las variables de entorno en import.meta.env.
+  // Esto usará automáticamente el valor de .env.development o .env.production.
+  return import.meta.env.VITE_BACKEND_URL || 'https://siembrasappback.onrender.com';
 };

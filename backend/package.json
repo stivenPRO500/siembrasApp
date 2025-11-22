@@ -4,8 +4,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "cross-env NODE_ENV=production node server.js",
+    "dev": "cross-env NODE_ENV=development nodemon server.js",
     "test": "set NODE_OPTIONS=--experimental-vm-modules && jest",
     "test:watch": "set NODE_OPTIONS=--experimental-vm-modules && jest --watch"
   },

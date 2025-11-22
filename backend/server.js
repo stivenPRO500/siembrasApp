@@ -16,9 +16,28 @@ const app = express();
 
 // Middleware para procesar JSON
 app.use(express.json());
+
+// Configuración de CORS dinámica
+const isProduction = process.env.NODE_ENV === 'production';
+const allowedOrigins = [
+  'https://siembrasapp.onrender.com', // Origen de producción
+];
+
+if (!isProduction) {
+  allowedOrigins.push('http://localhost:5173'); // Origen de desarrollo
+}
+
 app.use(cors({
-    origin: 'https://siembrasapp.onrender.com', // Permitir solo el frontend
-    credentials: true
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origen (como Postman o apps móviles)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'La política de CORS para este sitio no permite acceso desde el origen especificado.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
 }));
 
 // Definir las rutas

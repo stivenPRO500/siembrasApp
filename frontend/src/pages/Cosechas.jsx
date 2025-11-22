@@ -33,13 +33,13 @@ export default function Cosechas() {
           <div key={c._id} style={{ border: '1px solid #ddd', padding: 12, borderRadius: 8, background:'#fff' }}>
             <div style={{ fontWeight: 600 }}>Manzana: {c.manzana?.nombre || 'N/A'}</div>
             <div>Fecha: {new Date(c.fechaCosecha || c.createdAt).toLocaleDateString()}</div>
-            <div>Total costo: ${Number(c.totalCosto || 0).toFixed(2)}</div>
+            <div>Total costo: Q.{Math.round(Number(c.totalCosto || 0))}</div>
             <details style={{ marginTop: 8 }}>
               <summary style={{ cursor:'pointer' }}>Ver actividades ({c.actividades.length})</summary>
               <ul style={{ marginTop: 8 }}>
                 {c.actividades.map((a,i) => (
                   <li key={i}>
-                    {a.tipo} - {a.fechaRealizacion ? new Date(a.fechaRealizacion).toLocaleDateString() : 'Sin fecha'} - ${Number(a.costoTotal||0).toFixed(2)}
+                    {a.tipo} - {a.fechaRealizacion ? new Date(a.fechaRealizacion).toLocaleDateString() : 'Sin fecha'} - Q.{Math.round(Number(a.costoTotal||0))}
                   </li>
                 ))}
               </ul>
