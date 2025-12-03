@@ -22,9 +22,17 @@ dotenv.config();
     await mongoose.connect(uri);
     console.log('Conectado a MongoDB');
 
-    const admin = process.env.ADMIN_EMAIL
-      ? await User.findOne({ email: process.env.ADMIN_EMAIL })
-      : await User.findOne({ role: 'admin' });
+    let admin = null;
+    if (process.env.ADMIN_EMAIL) {
+      admin = await User.findOne({ email: process.env.ADMIN_EMAIL });
+    }
+    if (!admin) {
+      admin = await User.findOne({ role: 'admin' });
+    }
+    if (!admin) {
+      // fallback por username si no encuentra role por alguna razón
+      admin = await User.findOne({ username: 'admin' });
+    }
     if (!admin) {
       console.error('No se encontró usuario admin');
       process.exit(1);

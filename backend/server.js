@@ -9,6 +9,7 @@ import catalogoRoutes from './routes/catalogoRoutes.js';
 import cosechaRoutes from './routes/cosechaRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 import suscripcionRoutes from './routes/suscripcionRoutes.js';
+import statusRoutes from './routes/statusRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -71,6 +72,7 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.error('Error de conexión a MongoDB:', err));
   // Intentar eliminar índice único antiguo en Manzana si existe
   try {
+app.use('/status', statusRoutes); // Mounting new status routes
     const Manzana = (await import('./models/Manzana.js')).default;
     Manzana.collection.indexes().then(indexes => {
       const names = indexes.map(i => i.name);
