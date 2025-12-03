@@ -70,3 +70,37 @@
         transform: scale(1);
     }
 }
+
+/* CTA estilo enlace para "Crear cuenta" */
+.linkRow {
+    display: flex;
+    justify-content: center;
+    margin-top: 12px;
+}
+.linkText {
+    font-size: 0.95rem;
+    color: #0b5b02;
+    cursor: pointer;
+    position: relative;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+.linkText::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(135deg, #02911a, #f3ee00);
+    opacity: 0.5;
+    transform: scaleX(0.75);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.linkText:hover {
+    color: #0f6f03;
+}
+.linkText:hover::after {
+    opacity: 1;
+    transform: scaleX(1);
+}

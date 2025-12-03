@@ -14,6 +14,8 @@ const AgregarUsuario = () => {
         role: "usuario",
     });
     const [usuarios, setUsuarios] = useState([]);
+    // Eliminamos manejo de solicitudes de aprobación aquí: aprobación solo en panel de suscripciones
+    const [usuarioAbierto, setUsuarioAbierto] = useState(null); // id del usuario expandido
     const [token, setToken] = useState("");
     const navigate = useNavigate();
 
@@ -26,6 +28,7 @@ const AgregarUsuario = () => {
         } else {
             setToken(storedToken);
             fetchUsuarios(storedToken);
+            // Ya no cargamos solicitudes aquí
         }
     }, [navigate]);
 
@@ -40,6 +43,8 @@ const AgregarUsuario = () => {
             console.error("Error al obtener usuarios:", error);
         }
     };
+
+    // Función de solicitudes eliminada
 
     const handleChange = (e) => {
         setForm({
@@ -122,10 +127,18 @@ const AgregarUsuario = () => {
                     >
                         Ver Manzanas
                     </button>
+                    <button
+                        className={styles.verManzanasBtn}
+                        onClick={() => navigate("/admin-suscripciones")}
+                        aria-label="Gestión suscripciones"
+                        style={{ background:'#1e88e5' }}
+                    >
+                        Gestionar Suscripciones
+                    </button>
                 </div>
             </div>
 
-            <div className={styles.container} style={{ position: "relative" }}>
+            <div className={styles.container}>
                 {/* Botón superior izquierdo */}
 
            
@@ -156,16 +169,28 @@ const AgregarUsuario = () => {
                 </form>
             )}
 
-            <h3>Lista de Usuarios</h3>
+            <h3>Usuarios y Solicitudes</h3>
             <ul className={styles.userList}>
-                {usuarios.map((user) => (
-                    <li key={user._id} className={styles.userItem}>
-                        <span><strong>{user.username}</strong> ({user.role})</span>
-                        <button onClick={() => handleEliminar(user._id)} className={styles.deleteButton}>
-                            Eliminar
-                        </button>
-                    </li>
-                ))}
+                {usuarios.map((user) => {
+                    const abierto = usuarioAbierto === user._id;
+                    return (
+                        <li key={user._id} className={styles.userItem} onClick={() => setUsuarioAbierto(abierto ? null : user._id)} style={{ cursor:'pointer' }}>
+                            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', width:'100%', gap:8, flexWrap:'wrap' }}>
+                                <span><strong>{user.username}</strong> ({user.role})</span>
+                                <div style={{ display:'flex', gap:8 }}>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEliminar(user._id); }} className={styles.deleteButton}>Eliminar</button>
+                                </div>
+                            </div>
+                            {abierto && (
+                                <div style={{ marginTop:8, background:'#fff', color:'#000', padding:10, borderRadius:6 }} onClick={e => e.stopPropagation()}>
+                                    <p style={{ margin:'4px 0' }}>Email: {user.email}</p>
+                                    <p style={{ margin:'4px 0' }}>Estado: <strong>{user.estado || (user.aprobado ? 'aprobado' : 'pendiente')}</strong></p>
+                                    <p style={{ margin:'4px 0', fontSize:13, opacity:0.8 }}>Aprobaciones y comprobantes se gestionan en "Gestionar Suscripciones".</p>
+                                </div>
+                            )}
+                        </li>
+                    );
+                })}
             </ul>
         </div>
         </div>

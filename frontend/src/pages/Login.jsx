@@ -76,12 +76,19 @@ const Login = () => {
         
             if (res.ok) {
                 localStorage.setItem("token", data.token);
-                localStorage.setItem("role", data.role); // Guardar el rol
-        
+                localStorage.setItem("role", data.role);
+                if (typeof data.aprobado !== 'undefined') localStorage.setItem('aprobado', String(!!data.aprobado));
+                if (typeof data.requiereSuscripcion !== 'undefined') localStorage.setItem('requiereSuscripcion', String(!!data.requiereSuscripcion));
+                if (data.suscripcionExpira) localStorage.setItem('suscripcionExpira', data.suscripcionExpira);
+                if (typeof data.suscripcionSuspendido !== 'undefined') localStorage.setItem('suscripcionSuspendido', String(!!data.suscripcionSuspendido));
+                if (typeof data.enGracia !== 'undefined') localStorage.setItem('enGracia', String(!!data.enGracia));
+                // Redirigir según rol y suscripción
                 if (data.role === "admin") {
-                    navigate("/agregar-usuario"); // Redirigir al formulario si es admin
+                    navigate("/agregar-usuario");
+                } else if (data.requiereSuscripcion) {
+                    navigate('/suscripcion');
                 } else {
-                    navigate("/dashboard"); // O a donde quieras para usuarios normales
+                    navigate("/dashboard");
                 }
             } else {
                 setError(data.message || "Credenciales incorrectas");
@@ -90,6 +97,9 @@ const Login = () => {
             setError("Error de conexión. Intenta de nuevo.");
         }
     };
+
+    // Registro rápido (agricultor o usuario colaborador)
+    const irARegistro = () => navigate('/registro');
     
 
     return (
@@ -99,7 +109,7 @@ const Login = () => {
             <div className={styles.loginBox}>
                 <h2>Iniciar Sesión</h2>
                 {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
-                <form className={styles.loginForm} onSubmit={handleSubmit}>
+                                <form className={styles.loginForm} onSubmit={handleSubmit}>
                     <input
                         type="text"
                         placeholder="Nombre de usuario"
@@ -118,6 +128,11 @@ const Login = () => {
                         Ingresar
                     </button>
                 </form>
+                <div className={styles.linkRow}>
+                    <span className={styles.linkText} onClick={irARegistro}>
+                        Crear cuenta
+                    </span>
+                </div>
             </div>
         </div>
         

@@ -2,12 +2,19 @@ import express from 'express';
 import Actividad from '../models/Actividad.js';
 import Manzana from '../models/Manzana.js';
 import Catalogo from '../models/Catalogo.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Crear una nueva actividad
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
     try {
+        // Verificar propiedad de la manzana
+        const manzana = await Manzana.findById(req.body.manzana);
+        if (!manzana) return res.status(404).json({ message: 'Manzana no encontrada' });
+        if (manzana.owner && manzana.owner.toString() !== req.ownerId.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'No autorizado para agregar actividad a esta manzana' });
+        }
         // Calcular costos por producto y totales, soportando 'copas' para cualquier veneno
         let costoProductos = 0;
         let productosCalculados = [];
@@ -62,6 +69,7 @@ router.post("/", async (req, res) => {
             productosUtilizados: productosCalculados,
             costoTrabajo,
             costoTotal,
+            owner: req.ownerId
         });
         const actividadGuardada = await nuevaActividad.save();
 
@@ -96,9 +104,9 @@ router.post("/", async (req, res) => {
 });
 
 // Obtener todas las actividades
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
     try {
-        const actividades = await Actividad.find().populate('manzana');
+        const actividades = await Actividad.find({ owner: req.ownerId }).populate('manzana');
         res.json(actividades);
     } catch (error) {
         res.status(500).json({ message: "Error al obtener las actividades", error });
@@ -106,11 +114,14 @@ router.get('/', async (req, res) => {
 });
 
 // Actualizar una actividad
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const actividadExistente = await Actividad.findById(req.params.id);
         if (!actividadExistente) {
             return res.status(404).json({ message: 'Actividad no encontrada' });
+        }
+        if (actividadExistente.owner && actividadExistente.owner.toString() !== req.ownerId.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'No autorizado para actualizar esta actividad' });
         }
 
         // Recalcular costos si vienen productosUtilizados o costoTrabajo
@@ -176,9 +187,12 @@ router.put('/:id', async (req, res) => {
 });
 
 // Eliminar una actividad
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const actividadEliminada = await Actividad.findByIdAndDelete(req.params.id);
+        if (actividadEliminada && actividadEliminada.owner && actividadEliminada.owner.toString() !== req.ownerId.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'No autorizado para eliminar esta actividad' });
+        }
 
         // Eliminar la referencia en la manzana
         await Manzana.findByIdAndUpdate(actividadEliminada.manzana, {
@@ -192,9 +206,14 @@ router.delete('/:id', async (req, res) => {
 });
 
 // En tu controlador
-router.get('/:id', async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
     try {
-        const actividades = await Actividad.find({ manzana: req.params.id });
+        const manzana = await Manzana.findById(req.params.id);
+        if (!manzana) return res.status(404).json({ message: 'Manzana no encontrada' });
+        if (manzana.owner && manzana.owner.toString() !== req.ownerId.toString()) {
+            return res.status(403).json({ message: 'No autorizado para ver actividades de esta manzana' });
+        }
+        const actividades = await Actividad.find({ manzana: req.params.id, owner: req.ownerId });
         res.json(actividades);
     } catch (error) {
         res.status(500).json({ message: "Error al obtener actividades" });

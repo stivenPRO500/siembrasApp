@@ -90,6 +90,15 @@
 }
 .cerrarModalBtn:hover { background:rgba(255,255,255,0.18); transform:translateY(-2px); }
 .cerrarModalBtn:active { transform:translateY(0); }
+/* Lateral letter index */
+.letterIndex { position:fixed; right:10px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:6px; padding:8px 6px; background:rgba(18, 18, 20, 0.023); backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.08); border-radius:18px; z-index:600; }
+.letterIndexButton { background:rgba(255,255,255,0.08); color:#e6e9ee; border:none; width:32px; height:32px; border-radius:12px; font-size:0.7rem; font-weight:600; letter-spacing:.5px; cursor:pointer; transition:background .25s, transform .25s, color .25s; }
+.letterIndexButton:hover { background:rgba(255,255,255,0.18); transform:translateY(-2px); }
+.letterIndexButtonActive { background:linear-gradient(135deg,#1fa52e,#b6ff3b); color:#11111157; width:36px; height:36px; border:none; border-radius:14px; font-size:0.8rem; font-weight:700; box-shadow:0 6px 20px -6px rgba(0,0,0,0.6); }
+.letterDivider { grid-column:1 / -1; font-size:0.65rem; font-weight:700; letter-spacing:2px; padding:4px 10px; margin:2px 0 4px; background:linear-gradient(90deg,#1b1d20,#292d33); color:#b6ff3b; border-left:4px solid #b6ff3b; border-radius:10px; text-transform:uppercase; }
+@media (max-width:600px){ .letterIndex { right:4px; padding:6px 4px; gap:4px; border-radius:16px; } .letterIndexButton { width:26px; height:26px; font-size:0.55rem; } .letterIndexButtonActive { width:30px; height:30px; font-size:0.65rem; } }
+@media (max-width:480px){ .letterIndex { right:2px; padding:4px 3px; gap:3px; border-radius:14px; } .letterIndexButton { width:22px; height:22px; font-size:0.5rem; } .letterIndexButtonActive { width:24px; height:24px; font-size:0.55rem; } }
+@media (max-width:380px){ .letterIndex { right:1px; padding:3px 2px; gap:2px; border-radius:12px; } .letterIndexButton { width:20px; height:20px; font-size:0.45rem; } .letterIndexButtonActive { width:22px; height:22px; font-size:0.5rem; } }
 @media (max-width:600px){
   .catalogoContainer { padding:10px; }
   .catalogoGrid { grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }

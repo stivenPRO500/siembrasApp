@@ -7,6 +7,8 @@ import manzanaRoutes from './routes/manzanaRoutes.js';
 import actividadRoutes from './routes/actividadRoutes.js';
 import catalogoRoutes from './routes/catalogoRoutes.js';
 import cosechaRoutes from './routes/cosechaRoutes.js';
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
+import suscripcionRoutes from './routes/suscripcionRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -46,6 +48,9 @@ app.use('/manzanas', manzanaRoutes);
 app.use('/actividades', actividadRoutes);
 app.use('/api/catalogo', catalogoRoutes);
 app.use('/cosechas', cosechaRoutes);
+app.use('/solicitudes', subscriptionRoutes);
+app.use('/solicitudes', subscriptionRoutes);
+app.use('/suscripciones', suscripcionRoutes);
 // Servir archivos subidos (asegurar carpeta uploads)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,6 +69,25 @@ app.use('/uploads', express.static(uploadsDir));
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB conectado'))
     .catch(err => console.error('Error de conexión a MongoDB:', err));
+  // Intentar eliminar índice único antiguo en Manzana si existe
+  try {
+    const Manzana = (await import('./models/Manzana.js')).default;
+    Manzana.collection.indexes().then(indexes => {
+      const names = indexes.map(i => i.name);
+      const targets = ['owner_1_nombre_1', 'nombre_1'];
+      targets.forEach(idx => {
+        if (names.includes(idx)) {
+          Manzana.collection.dropIndex(idx).then(() => {
+            console.log(`[Manzana] Índice eliminado: ${idx}`);
+          }).catch(err => {
+            console.warn(`[Manzana] No se pudo eliminar índice ${idx}:`, err.message);
+          });
+        }
+      });
+    }).catch(()=>{});
+  } catch (e) {
+    console.warn('No se pudo verificar índices de Manzana:', e.message);
+  }
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));

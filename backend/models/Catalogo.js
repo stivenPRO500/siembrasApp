@@ -32,6 +32,7 @@ const catalogoSchema = new mongoose.Schema(
     // Nota opcional del producto (descripción interna)
     nota: { type: String },
     imagen: { type: String }, // URL de la imagen del producto
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } // Propietario agricultor del producto
   },
   { timestamps: true }
 );

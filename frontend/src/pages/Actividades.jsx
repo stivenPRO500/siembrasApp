@@ -11,46 +11,72 @@ function ProductoPicker({ productosCatalogo, productosSeleccionados, onAdd }) {
     const [productoId, setProductoId] = useState("");
     const [cantidad, setCantidad] = useState(0);
     const [unidad, setUnidad] = useState("copas");
+    const [filtroProducto, setFiltroProducto] = useState("");
+    const [mostrarLista, setMostrarLista] = useState(false);
 
-    const opciones = productosCatalogo.filter((p) => !productosSeleccionados.some((s) => s.producto === p._id));
+    const opciones = productosCatalogo
+        .filter((p) => !productosSeleccionados.some((s) => s.producto === p._id))
+        .slice()
+        .sort((a,b)=> (a.nombre||'').localeCompare(b.nombre||'', 'es', { sensitivity:'base' }))
+        .filter(p => (p.nombre||'').toLowerCase().includes(filtroProducto.toLowerCase()));
     const prodSel = productosCatalogo.find((p) => p._id === productoId);
 
     return (
         <div style={{ marginBottom: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                <select value={productoId} onChange={(e) => {
-                    const id = e.target.value;
-                    setProductoId(id);
-                    const p = productosCatalogo.find(pp => pp._id === id);
-                    if (p?.tipo === 'veneno') setUnidad('copas');
-                    else if (p?.tipo === 'semillas') setUnidad('libras');
-                    else setUnidad('unidades');
-                }}>
-                    <option value="">Selecciona un producto</option>
-                    {opciones.map((p) => (
-                        <option key={p._id} value={p._id}>{p.nombre} {p.presentacion ? `(${p.presentacion})` : ''}</option>
-                    ))}
-                </select>
-                <input type="number" min="0" step="0.01" placeholder="Cantidad" value={cantidad} onChange={(e) => setCantidad(parseFloat(e.target.value))} />
+            <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1.8fr' }}>
+                <div style={{ position:'relative' }}>
+                    <input
+                        type="text"
+                        placeholder="Producto..."
+                        value={filtroProducto}
+                        onChange={e=> { setFiltroProducto(e.target.value); setMostrarLista(true); }}
+                        onFocus={()=> setMostrarLista(true)}
+                        style={{width:'70%', padding:'6px 8px', border:'1px solid #ddd', borderRadius:6, fontSize:'0.9rem' }}
+                    />
+                    {mostrarLista && opciones.length > 0 && (
+                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, background:'#fff', border:'1px solid #ddd', borderRadius:6, boxShadow:'0 8px 24px rgba(0,0,0,0.12)', maxHeight:140, overflowY:'auto', zIndex:30 }}>
+                            {opciones.map(p => (
+                                <div
+                                    key={p._id}
+                                    onMouseDown={() => {
+                                        setFiltroProducto(`${p.nombre}${p.presentacion ? ` (${p.presentacion})` : ''}`);
+                                        setProductoId(p._id);
+                                        const prod = productosCatalogo.find(pp => pp._id === p._id);
+                                        if (prod?.tipo === 'veneno') setUnidad('copas');
+                                        else if (prod?.tipo === 'semillas') setUnidad('libras');
+                                        else setUnidad('unidades');
+                                        setMostrarLista(false);
+                                    }}
+                                    style={{ padding:'6px 8px', cursor:'pointer', fontSize:'0.9rem' }}
+                                >{p.nombre} {p.presentacion ? `(${p.presentacion})` : ''}</div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <input type="number" min="0" width='100%' step="0.01" placeholder="Cant." value={cantidad} onChange={(e) => setCantidad(parseFloat(e.target.value))} style={{ padding:'6px 8px', fontSize:'0.9rem', width:'5ch' }} />
                 {prodSel && prodSel.tipo === 'veneno' ? (
-                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>
+                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)} style={{ width: "100%"}}>
                         <option value="copas">Copas</option>
                         <option value="unidades">Unidades</option>
                     </select>
                 ) : prodSel && prodSel.tipo === 'semillas' ? (
-                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>
+                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)} style={{ padding:'6px 8px', fontSize:'0.9rem',width: "100%" }}>
                         <option value="libras">Libras</option>
                         <option value="unidad">Unidad</option>
                     </select>
                 ) : (
-                    <span style={{ fontSize: 12, color: '#666' }}>{prodSel?.presentacion || 'unidades'}</span>
+                    <span style={{fontSize: 12, color: '#666', display:'inline-block', width:'5ch', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{prodSel?.presentacion || 'unidades'}</span>
                 )}
             </div>
             <div>
                 <button type="button" className={dashStyles.btnAgregarManzana} onClick={() => {
                     if (!productoId) return;
                     onAdd({ producto: productoId, cantidad: Number(cantidad) || 0, unidad });
-                    setProductoId(""); setCantidad(0); setUnidad('copas');
+                    setProductoId("");
+                    setCantidad(0);
+                    setUnidad('copas');
+                    setFiltroProducto("");
+                    setMostrarLista(false);
                 }}>Agregar producto</button>
             </div>
         </div>
@@ -99,6 +125,9 @@ const Actividades = () => {
     const [costoTrabajo, setCostoTrabajo] = useState(0);
     const [mostrarProductos, setMostrarProductos] = useState(false);
     const [nuevaFechaAlerta, setNuevaFechaAlerta] = useState("");
+    // Estados para nombre personalizado (crear y editar)
+    const [nuevoTipoPersonalizado, setNuevoTipoPersonalizado] = useState("");
+    const [editarTipoPersonalizado, setEditarTipoPersonalizado] = useState("");
     const [actividadesAbiertas, setActividadesAbiertas] = useState({}); // { [actividadId]: true }
     // Filtros y orden
     const [mostrarFiltros, setMostrarFiltros] = useState(false);
@@ -113,9 +142,15 @@ const Actividades = () => {
 
     const fetchActividades = async () => {
         try {
-            const response = await fetch(`${getBackendUrl()}/actividades/${manzanaId}`);
+            const t = localStorage.getItem('token');
+            const response = await fetch(`${getBackendUrl()}/actividades/${manzanaId}`, { headers:{ Authorization:`Bearer ${t}` } });
+            if (response.status === 403) {
+                console.warn('No autorizado para ver actividades de esta manzana');
+                setActividades([]);
+                return;
+            }
             const data = await response.json();
-            setActividades(data);
+            setActividades(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error al obtener actividades:", error);
         }
@@ -123,9 +158,10 @@ const Actividades = () => {
 
     const fetchCatalogo = async () => {
         try {
-            const response = await fetch(`${getBackendUrl()}/api/catalogo`);
+            const t = localStorage.getItem('token');
+            const response = await fetch(`${getBackendUrl()}/api/catalogo`, { headers:{ Authorization:`Bearer ${t}` } });
             const data = await response.json();
-            setProductosCatalogo(data);
+            setProductosCatalogo(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error("Error al obtener catálogo:", error);
         }
@@ -140,8 +176,10 @@ const Actividades = () => {
     const handleDelete = async (id) => {
         if (window.confirm("¿Estás seguro de que quieres eliminar esta actividad?")) {
             try {
+                const t = localStorage.getItem('token');
                 await fetch(`${getBackendUrl()}/actividades/${id}`, {
                     method: "DELETE",
+                    headers:{ Authorization:`Bearer ${t}` }
                 });
                 setActividades(actividades.filter((actividad) => actividad._id !== id));
             } catch (error) {
@@ -157,6 +195,7 @@ const Actividades = () => {
     const handleEdit = (actividad) => {
         setActividadEditando(actividad);
         setNuevoTipo(actividad.tipo);
+        setEditarTipoPersonalizado("");
         setNuevaFecha(formatDate(actividad.fechaRealizacion));
         setNuevaFechaAlerta(actividad.fechaAlerta ? formatDate(actividad.fechaAlerta) : "");
         setProductosSeleccionados(actividad.productosUtilizados || []);
@@ -169,6 +208,7 @@ const Actividades = () => {
         // Limpiar cualquier estado de edición previo antes de abrir nuevo formulario
         setActividadEditando(null);
         setNuevoTipo("");
+        setNuevoTipoPersonalizado("");
         setNuevaFecha("");
         setNuevaFechaAlerta("");
         setProductosSeleccionados([]);
@@ -182,6 +222,8 @@ const Actividades = () => {
         setModalOpen(false);
         setActividadEditando(null);
         setNuevoTipo("");
+        setNuevoTipoPersonalizado("");
+        setEditarTipoPersonalizado("");
         setNuevaFecha("");
         setNuevaFechaAlerta("");
         setProductosSeleccionados([]);
@@ -191,6 +233,8 @@ const Actividades = () => {
 
     const handleSave = async () => {
         if (!actividadEditando) return;
+        const tipoElegido = nuevoTipo === '__personalizada__' ? editarTipoPersonalizado.trim() : nuevoTipo;
+        if (!tipoElegido) return;
         // Preparar productos para enviar igual que en creación
         const productosParaEnviar = productosSeleccionados.map((p) => {
             const tipoProd = productosCatalogo.find(x => x._id === p.producto)?.tipo;
@@ -204,16 +248,17 @@ const Actividades = () => {
             };
         });
         const payload = {
-            tipo: nuevoTipo,
+            tipo: tipoElegido,
             fechaRealizacion: nuevaFecha,
             fechaAlerta: nuevaFechaAlerta,
             productosUtilizados: productosParaEnviar,
             costoTrabajo: Math.round(Number(costoTrabajo) || 0),
         };
         try {
+            const t = localStorage.getItem('token');
             const response = await fetch(`${getBackendUrl()}/actividades/${actividadEditando._id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization:`Bearer ${t}` },
                 body: JSON.stringify(payload)
             });
             if (response.ok) {
@@ -222,6 +267,7 @@ const Actividades = () => {
                 setActividadEditando(null);
                 // limpiar estados
                 setNuevoTipo('');
+                setEditarTipoPersonalizado('');
                 setNuevaFecha('');
                 setProductosSeleccionados([]);
                 setCostoTrabajo(0);
@@ -237,6 +283,8 @@ const Actividades = () => {
 
     const handleSubmit = async () => {
         // Enviar cantidad y unidad; backend realiza conversion según copasPorUnidad (veneno) o libras (semillas)
+        const tipoElegido = nuevoTipo === '__personalizada__' ? nuevoTipoPersonalizado.trim() : nuevoTipo;
+        if (!tipoElegido) return;
         const productosParaEnviar = productosSeleccionados.map((p) => {
             const tipoProd = productosCatalogo.find(x => x._id === p.producto)?.tipo;
             let unidadEnviar = 'unidades';
@@ -250,7 +298,7 @@ const Actividades = () => {
         });
 
         const nuevaActividad = {
-            tipo: nuevoTipo,
+            tipo: tipoElegido,
             fechaRealizacion: nuevaFecha,
             fechaAlerta: nuevaFechaAlerta,
             manzana: manzanaId,
@@ -259,10 +307,12 @@ const Actividades = () => {
         };
 
         try {
+            const t = localStorage.getItem('token');
             const response = await fetch(`${getBackendUrl()}/actividades`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization:`Bearer ${t}`
                 },
                 body: JSON.stringify(nuevaActividad),
             });
@@ -273,6 +323,7 @@ const Actividades = () => {
                 // reset form state
                 setActividadEditando(null);
                 setNuevoTipo("");
+                setNuevoTipoPersonalizado("");
                 setNuevaFecha("");
                 setProductosSeleccionados([]);
                 setCostoTrabajo(0);
@@ -287,9 +338,28 @@ const Actividades = () => {
     };
 
     // Tipos disponibles (coinciden con opciones del formulario)
-    const tiposActividad = [
-        'fumigar gusano', 'fumigar rolla', 'abonar', 'sembrar', 'fumigar monte', 'poner manguera', 'cortar', 'inyectar', 'tronquiar', 'fumigar gilote', 'tractorar', 'otros'
+    const tiposActividadBase = [
+        'Fumigar Gusano', 
+        'Fumigar Rolla', 
+        'Abonar', 
+        'Sembrar',
+        'Fumigar Monte',
+        'Poner Manguera', 
+        'Cortar', 
+        'Inyectar', 
+        'Tronquiar', 
+        'Fumigar Gilote', 
+        'Tractorar',
+        'Revisar Manguera',
+        'Quitar Manguera',
+        'Poner Nailo',
+        'Poner Manta',
+        'Inyectar Abono'
     ];
+    const tiposActividad = tiposActividadBase
+        .slice()
+        .sort((a,b)=> a.localeCompare(b,'es',{sensitivity:'base'}))
+        .map(t=> t.toLowerCase());
 
     // Aplicar filtro por tipo y orden antes de renderizar
     const actividadesMostrar = actividades
@@ -326,7 +396,8 @@ const Actividades = () => {
                     <button className={dashStyles.btnAgregarManzana} style={{ background:'#c0392b' }} onClick={async () => {
                                 if(!window.confirm('¿Cosechar? Se vaciarán las actividades.')) return;
                                 try {
-                                    const res = await fetch(`${getBackendUrl()}/manzanas/cosechar/${manzanaId}`, { method: 'POST' });
+                                    const t = localStorage.getItem('token');
+                                    const res = await fetch(`${getBackendUrl()}/manzanas/cosechar/${manzanaId}`, { method: 'POST', headers:{ Authorization:`Bearer ${t}` } });
                                     if(res.ok){
                                         await fetchActividades();
                                         navigate('/cosechas');
@@ -447,19 +518,21 @@ const Actividades = () => {
                         <label>Tipo:</label>
                         <select value={nuevoTipo} onChange={(e) => setNuevoTipo(e.target.value)} required>
                             <option value="" disabled hidden>Selecciona una actividad</option>
-                            <option value="fumigar gusano">Fumigar Gusano</option>
-                            <option value="fumigar rolla">Fumigar Rolla</option>
-                            <option value="abonar">Abonar</option>
-                            <option value="sembrar">Sembrar</option>
-                            <option value="fumigar monte">Fumigar Monte</option>
-                            <option value="poner manguera">Poner Manguera</option>
-                            <option value="cortar">Cortar</option>
-                            <option value="inyectar">Inyectar</option>
-                            <option value="tronquiar">Tronquiar</option>
-                            <option value="fumigar gilote">Fumigar Gilote</option>
-                            <option value="tractorar">Tractorear</option>
-                            <option value="otros">Otros</option>
+                            {tiposActividad.map((t) => (
+                                <option key={t} value={t}>{t.replace(/\b\w/g, c=>c.toUpperCase())}</option>
+                            ))}
+                            <option value="__personalizada__">Personalizada…</option>
                         </select>
+                        {nuevoTipo === '__personalizada__' && (
+                            <input
+                                type="text"
+                                placeholder="Nombre de actividad"
+                                value={nuevoTipoPersonalizado}
+                                onChange={(e)=> setNuevoTipoPersonalizado(e.target.value)}
+                                required
+                                style={{ marginTop:8 }}
+                            />
+                        )}
                         <label>Fecha de Realización:</label>
                         <input type="date" value={nuevaFecha} onChange={(e) => setNuevaFecha(e.target.value)} required />
                         <label>Fecha de Alerta:</label>

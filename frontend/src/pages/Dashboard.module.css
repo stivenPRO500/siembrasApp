@@ -134,6 +134,17 @@
     color: #100f0f;
   }
   
+    
+    /* Green highlight for selected subscription plan card */
+    .selectedCard {
+        border-color: #2ecc71; /* green */
+        box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.25);
+    }
+    
+    /* Hide native radio dot inside plan cards for a cleaner look */
+    .actividadCard input[type="radio"] {
+        display: none;
+    }
   input {
     width: 100%;
     padding: 12px;
@@ -262,6 +273,60 @@
     background: #27ae60;
 }
 
+/* Tarjetas actividad genéricas (usadas también para planes de suscripción) */
+.actividadCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background-color: rgba(193, 222, 172, 0.812);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform .3s ease, box-shadow .3s ease, border-color .2s ease;
+    cursor: pointer;
+}
+.actividadCard:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+
+/* Dark styling for file input inside actividadCard to match subscription cards and deposit panel */
+.actividadCard label { color: #0a0a0a; font-weight: 600; }
+.actividadCard input[type="file"] {
+    width: 100%;
+    background: rgba(10, 10, 10, 0.72);
+    border: 1px solid rgba(0,0,0,0.25);
+    border-radius: 8px;
+    color: #eaf7d9;
+    padding: 8px;
+}
+.actividadCard input[type="file"]::-webkit-file-upload-button {
+    background: rgba(30, 30, 30, 0.9);
+    color: #eaf7d9;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.actividadCard input[type="file"]::file-selector-button {
+    background: rgba(30, 30, 30, 0.9);
+    color: #eaf7d9;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+
+/* Selected state stronger visual */
+.selectedCard {
+     /* green */
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.35), 0 6px 16px rgba(0,0,0,0.2);
+    background: linear-gradient(135deg, #02911acb, #f3ef00cd);
+}
+
+/* Hide native radio dot inside plan cards for a cleaner look */
+.actividadCard input[type="radio"] {
+    display: none;
+}
+
 /*estilos de los filtros de busqueda*/
 .searchBarContainer {
     display: flex;
@@ -288,6 +353,27 @@
     transition: border-color 0.3s, background-color 0.3s;
     padding-left: 35px; /* Espacio para el ícono */
 }
+
+/* Input de búsqueda con el MISMO estilo visual de los botones */
+.searchInputButton {
+    background: linear-gradient(135deg, #02911a, #f3ee00);
+    color: #ffffff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 0; /* para alinear con los botones de la top bar */
+    min-width: 180px;
+    font-size: 1rem;
+    line-height: 1;
+    box-sizing: border-box;
+    display: inline-block;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+}
+.searchInputButton::placeholder { color: rgba(255,255,255,0.85); }
+.searchInputButton:hover { background: linear-gradient(135deg, #5a78e1, #9466c5); }
+.searchInputButton:focus { box-shadow: 0 0 0 2px rgba(255,255,255,0.18); }
 
 .searchIcon {
     position: absolute;
@@ -353,6 +439,75 @@
     justify-content: flex-start;
 }
 
+/* Panel informativo con el mismo estilo de colores que las tarjetas */
+.depositoInfo {
+    background-color: rgba(193, 222, 172, 0.812);
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    color: #0a0a0a;
+    transition: transform .3s ease, box-shadow .3s ease, border-color .2s ease;
+}
+.depositoInfo:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+.depositoInfo label { color: inherit; }
+.depositoInfo input[type="file"] {
+    width: 100%;
+    background: rgba(10, 10, 10, 0.72);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: #eaf7d9;
+    padding: 8px;
+}
+.depositoInfo input[type="file"]::-webkit-file-upload-button {
+    background: rgba(30, 30, 30, 0.9);
+    color: #eaf7d9;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.depositoInfo input[type="file"]::file-selector-button {
+    background: rgba(30, 30, 30, 0.9);
+    color: #eaf7d9;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+}
+.depositoInfo strong { color: #0a5a02; }
+.depositoInfo small { color: #4b5c47; }
+
+/* Deposit info structured list */
+.depositoInfoList {
+    list-style: none;
+    margin: 10px 0 0 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+}
+.depositoInfoItem {
+    display: grid;
+    grid-template-columns: 12px 1fr;
+    align-items: start;
+    gap: 10px;
+}
+.depositoInfoBullet {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2ecc71; /* green */
+    margin-top: 6px;
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.25);
+}
+.depositoCuenta {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    padding: 1px 6px;
+    border-radius: 6px;
+}
+
 
 .contadorDias {
     margin-left: 60px;
@@ -381,6 +536,7 @@
     .cardButtons { flex-wrap: wrap; gap: 6px; }
     .btnAgregarManzana, .btnAgregar, .btnEliminar, .btnAccion { padding: 5px 8px; font-size: 0.7rem; }
     .searchInput { min-width: 140px; font-size: 0.75rem; padding: 6px 26px 6px 26px; }
+    .searchInputButton { min-width: 140px; font-size: 0.75rem; padding: 6px 10px; }
     .searchIcon { font-size: 0.9rem; left: 8px; }
     .contadorDias { margin-left: 6px; font-size: 9px; width: 18px; height: 18px; }
     .modalContent { padding: 14px 16px; max-width: 300px; }
@@ -398,6 +554,7 @@
     .manzanasGrid { grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 8px; }
     .btnAgregarManzana, .btnAgregar, .btnEliminar, .btnAccion { font-size: 0.65rem; padding: 4px 6px; }
     .searchInput { min-width: 120px; font-size: 0.7rem; }
+    .searchInputButton { min-width: 120px; font-size: 0.7rem; padding: 5px 8px; }
     .manzanaCard { padding: 8px; }
     .cardButtons { gap: 4px; }
     .modalContent { max-width: 250px; padding: 10px 12px; }
@@ -406,4 +563,6 @@
     .modalContent button { font-size: 0.6rem; padding: 5px 8px; }
     .modalActions { flex-direction: column; gap: 6px; }
     .modalActions button { width: 100%; }
+    .actividadCard { padding: 10px; }
+    .depositoInfo { padding: 12px 14px; }
 }

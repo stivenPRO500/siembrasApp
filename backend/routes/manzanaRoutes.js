@@ -2,23 +2,64 @@ import express from 'express';
 import Manzana from '../models/Manzana.js';
 import Actividad from "../models/Actividad.js";
 import Cosecha from '../models/Cosecha.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 const router = express.Router();
+// ----- Admin: gestionar índices de Manzana -----
+router.get('/indices', authMiddleware, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') return res.status(403).json({ message: 'Solo admin' });
+        const indexes = await Manzana.collection.indexes();
+        res.json(indexes);
+    } catch (e) {
+        res.status(500).json({ message: 'Error listando índices', error: e.message });
+    }
+});
+
+router.delete('/indices/owner-nombre', authMiddleware, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') return res.status(403).json({ message: 'Solo admin' });
+        await Manzana.collection.dropIndex('owner_1_nombre_1');
+        res.json({ message: 'Índice owner_1_nombre_1 eliminado' });
+    } catch (e) {
+        res.status(500).json({ message: 'Error eliminando índice', error: e.message });
+    }
+});
+
+router.delete('/indices/nombre', authMiddleware, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') return res.status(403).json({ message: 'Solo admin' });
+        await Manzana.collection.dropIndex('nombre_1');
+        res.json({ message: 'Índice nombre_1 eliminado' });
+    } catch (e) {
+        res.status(500).json({ message: 'Error eliminando índice nombre_1', error: e.message });
+    }
+});
 
 // Crear una nueva manzana
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     try {
-        const nuevaManzana = new Manzana(req.body);
+        if (!['admin','agricultor','usuario'].includes(req.user.role)) {
+            return res.status(403).json({ message: 'No autorizado para crear manzanas' });
+        }
+        const nombreRaw = (req.body.nombre || '').trim();
+        if (!nombreRaw) return res.status(400).json({ message: 'Nombre de manzana requerido' });
+        const nuevaManzana = new Manzana({
+            ...req.body,
+            nombre: nombreRaw,
+            owner: req.ownerId
+        });
         const manzanaGuardada = await nuevaManzana.save();
         res.status(201).json(manzanaGuardada);
     } catch (error) {
-        res.status(500).json({ message: "Error al crear la manzana", error });
+        console.error('Error creando manzana:', error);
+        res.status(500).json({ message: "Error al crear la manzana", error: error.message });
     }
 });
 
 // Obtener todas las manzanas
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
     try {
-        const manzanas = await Manzana.find().populate("actividades");
+        const manzanas = await Manzana.find({ owner: req.ownerId }).populate("actividades");
 
         const hoy = new Date();
 
@@ -42,29 +83,40 @@ router.get("/", async (req, res) => {
 
 
 // Actualizar una manzana
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
     try {
-        const manzanaActualizada = await Manzana.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json(manzanaActualizada);
+        const manzana = await Manzana.findById(req.params.id);
+        if (!manzana) return res.status(404).json({ message: 'Manzana no encontrada' });
+        if (manzana.owner && manzana.owner.toString() !== req.ownerId.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'No autorizado para actualizar esta manzana' });
+        }
+        Object.assign(manzana, req.body);
+        await manzana.save();
+        res.json(manzana);
     } catch (error) {
-        res.status(500).json({ message: "Error al actualizar la manzana", error });
+        res.status(500).json({ message: "Error al actualizar la manzana", error: error.message });
     }
 });
 
 // Eliminar una manzana
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
-        await Manzana.findByIdAndDelete(req.params.id);
+        const manzana = await Manzana.findById(req.params.id);
+        if (!manzana) return res.status(404).json({ message: 'Manzana no encontrada' });
+        if (manzana.owner && manzana.owner.toString() !== req.ownerId.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'No autorizado para eliminar esta manzana' });
+        }
+        await manzana.deleteOne();
         res.json({ message: "Manzana eliminada correctamente" });
     } catch (error) {
-        res.status(500).json({ message: "Error al eliminar la manzana", error });
+        res.status(500).json({ message: "Error al eliminar la manzana", error: error.message });
     }
 });
 
 // Obtener todas las manzanas y actualizar su estado según las actividades
-router.get("/estado", async (req, res) => {
+router.get("/estado", authMiddleware, async (req, res) => {
     try {
-        const manzanas = await Manzana.find().populate("actividades");
+        const manzanas = await Manzana.find({ owner: req.ownerId }).populate("actividades");
 
         const hoy = new Date();
 
@@ -118,13 +170,15 @@ router.get("/estado", async (req, res) => {
 
 
 
-export default router;
-
-// Ruta para cosechar (debe ir antes de export en ESM? - añadir arriba de export but patch easier here)
-router.post('/cosechar/:id', async (req, res) => {
+// Ruta para cosechar una manzana: crea documento Cosecha con snapshot y limpia actividades
+router.post('/cosechar/:id', authMiddleware, async (req, res) => {
     try {
         const manzana = await Manzana.findById(req.params.id).populate('actividades');
         if (!manzana) return res.status(404).json({ message: 'Manzana no encontrada' });
+        // Verificar propiedad
+        if (manzana.owner && manzana.owner.toString() !== req.ownerId.toString()) {
+            return res.status(403).json({ message: 'No autorizado para cosechar esta manzana' });
+        }
 
         const actividadesSnapshot = manzana.actividades.map(a => ({
             tipo: a.tipo,
@@ -142,7 +196,8 @@ router.post('/cosechar/:id', async (req, res) => {
         const cosecha = await Cosecha.create({
             manzana: manzana._id,
             actividades: actividadesSnapshot,
-            totalCosto
+            totalCosto,
+            owner: req.ownerId
         });
 
         // Borrar actividades y limpiar referencia
@@ -156,3 +211,5 @@ router.post('/cosechar/:id', async (req, res) => {
         res.status(500).json({ message: 'Error al cosechar', error: error.message });
     }
 });
+
+export default router;

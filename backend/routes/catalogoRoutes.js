@@ -1,5 +1,6 @@
 import express from 'express';
 import Catalogo from '../models/Catalogo.js';
+import authMiddleware from '../middleware/authMiddleware.js';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -69,17 +70,17 @@ const subirACloudinary = (buffer, originalname) => {
 const router = express.Router();
 
 // Obtener todos los productos del catálogo
-router.get('/', async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
-    const productos = await Catalogo.find();
+    const productos = await Catalogo.find({ owner: req.ownerId });
     res.json(productos);
   } catch (error) {
-    res.status(500).json({ message: 'Error al obtener el catálogo', error });
+    res.status(500).json({ message: 'Error al obtener el catálogo', error: error.message });
   }
 });
 
 // Agregar un nuevo producto al catálogo
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const body = { ...req.body };
     if (body.precio !== undefined) body.precio = Number(body.precio) || 0;
@@ -90,7 +91,7 @@ router.post('/', async (req, res) => {
       body.librasPorBolsa = Number(body.librasPorBolsa) || 0;
     }
     // nota se guarda tal cual
-    const nuevoProducto = new Catalogo(body);
+    const nuevoProducto = new Catalogo({ ...body, owner: req.ownerId });
     const productoGuardado = await nuevoProducto.save();
     res.status(201).json(productoGuardado);
   } catch (error) {
@@ -99,7 +100,7 @@ router.post('/', async (req, res) => {
 });
 
 // Subida con imagen de archivo
-router.post('/upload', upload.single('imagen'), async (req, res) => {
+router.post('/upload', authMiddleware, upload.single('imagen'), async (req, res) => {
   try {
     const { nombre, tipo, precio, presentacion, copasPorUnidad, librasPorBolsa, nota } = req.body;
     let imagenUrl;
@@ -124,7 +125,8 @@ router.post('/upload', upload.single('imagen'), async (req, res) => {
       copasPorUnidad: tipo === 'veneno' ? (Number(copasPorUnidad) || 0) : undefined,
       librasPorBolsa: tipo === 'semillas' ? (Number(librasPorBolsa) || 0) : undefined,
       nota: nota,
-      imagen: imagenUrl
+      imagen: imagenUrl,
+  owner: req.ownerId
     });
     res.status(201).json(doc);
   } catch (err) {
@@ -133,14 +135,20 @@ router.post('/upload', upload.single('imagen'), async (req, res) => {
 });
 
 // Actualizar un producto del catálogo
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const body = { ...req.body };
     if (body.precio !== undefined) body.precio = Number(body.precio) || 0;
     if (body.copasPorUnidad !== undefined) body.copasPorUnidad = Number(body.copasPorUnidad) || 0;
     if (body.librasPorBolsa !== undefined) body.librasPorBolsa = Number(body.librasPorBolsa) || 0;
     // nota se pasa directo
-    const productoActualizado = await Catalogo.findByIdAndUpdate(req.params.id, body, { new: true });
+    const existente = await Catalogo.findById(req.params.id);
+    if (!existente) return res.status(404).json({ message: 'Producto no encontrado' });
+    if (existente.owner && existente.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'No autorizado para actualizar este producto' });
+    }
+    Object.assign(existente, body);
+    const productoActualizado = await existente.save();
     res.json(productoActualizado);
   } catch (error) {
     res.status(400).json({ message: 'Error al actualizar el producto', error });
@@ -148,7 +156,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Actualizar con nueva imagen
-router.put('/:id/upload', upload.single('imagen'), async (req, res) => {
+router.put('/:id/upload', authMiddleware, upload.single('imagen'), async (req, res) => {
   try {
     const { nombre, tipo, precio, presentacion, copasPorUnidad, librasPorBolsa, nota } = req.body;
     const update = { nombre, tipo, nota };
@@ -175,7 +183,13 @@ router.put('/:id/upload', upload.single('imagen'), async (req, res) => {
       }
     }
     Object.keys(update).forEach((k) => update[k] === undefined && delete update[k]);
-    const productoActualizado = await Catalogo.findByIdAndUpdate(req.params.id, update, { new: true });
+    const existente = await Catalogo.findById(req.params.id);
+    if (!existente) return res.status(404).json({ message: 'Producto no encontrado' });
+    if (existente.owner && existente.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'No autorizado para actualizar este producto' });
+    }
+    Object.assign(existente, update);
+    const productoActualizado = await existente.save();
     res.json(productoActualizado);
   } catch (err) {
     res.status(400).json({ message: 'Error al actualizar producto', error: err.message });
@@ -183,9 +197,14 @@ router.put('/:id/upload', upload.single('imagen'), async (req, res) => {
 });
 
 // Eliminar un producto del catálogo
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
-    await Catalogo.findByIdAndDelete(req.params.id);
+    const existente = await Catalogo.findById(req.params.id);
+    if (!existente) return res.status(404).json({ message: 'Producto no encontrado' });
+    if (existente.owner && existente.owner.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'No autorizado para eliminar este producto' });
+    }
+    await existente.deleteOne();
     res.json({ message: 'Producto eliminado correctamente' });
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar el producto', error });

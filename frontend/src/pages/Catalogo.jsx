@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dashStyles from './Dashboard.module.css';
 import catalogoStyles from './Catalogo.module.css';
@@ -27,11 +27,18 @@ export default function Catalogo() {
   const [busqueda, setBusqueda] = useState('');
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [filtroTipo, setFiltroTipo] = useState(''); // '' = todos
+  // Estado para mostrar la letra actual según scroll
+  const [currentLetter, setCurrentLetter] = useState('');
+  // Refs para cada card y el contenedor del grid
+  const cardRefs = useRef({});
+  const letterRefs = useRef({});
+  const gridRef = useRef(null);
   const navigate = useNavigate();
 
   const load = async () => {
     try {
-  const res = await fetch(`${getBackendUrl()}/api/catalogo`);
+      const t = localStorage.getItem('token');
+      const res = await fetch(`${getBackendUrl()}/api/catalogo`, { headers:{ Authorization:`Bearer ${t}` }});
       const data = await res.json();
       setItems(data);
     } catch (e) {
@@ -71,8 +78,10 @@ export default function Catalogo() {
         }
         if (form.nota) fd.append('nota', form.nota);
         fd.append('imagen', form.archivo);
+        const t = localStorage.getItem('token');
         res = await fetch(`${getBackendUrl()}/api/catalogo/upload`, {
           method: 'POST',
+          headers:{ Authorization:`Bearer ${t}` },
           body: fd,
         });
       } else {
@@ -85,9 +94,10 @@ export default function Catalogo() {
           librasPorBolsa: form.tipo === 'semillas' ? Number(form.librasPorBolsa || 0) : undefined,
           nota: form.nota || undefined,
         };
+        const t = localStorage.getItem('token');
         res = await fetch(`${getBackendUrl()}/api/catalogo`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization:`Bearer ${t}` },
           body: JSON.stringify(payload),
         });
       }
@@ -107,7 +117,8 @@ export default function Catalogo() {
   const onDelete = async (id) => {
     if (!window.confirm('¿Eliminar producto?')) return;
     try {
-  const res = await fetch(`${getBackendUrl()}/api/catalogo/${id}`, { method: 'DELETE' });
+      const t = localStorage.getItem('token');
+      const res = await fetch(`${getBackendUrl()}/api/catalogo/${id}`, { method: 'DELETE', headers:{ Authorization:`Bearer ${t}` } });
       if (res.ok) await load();
     } catch (e) {
       console.error('Error eliminando', e);
@@ -154,8 +165,10 @@ export default function Catalogo() {
         }
         if (editForm.nota) fd.append('nota', editForm.nota);
         fd.append('imagen', editForm.archivo);
+        const t = localStorage.getItem('token');
         res = await fetch(`${getBackendUrl()}/api/catalogo/${editing._id}/upload`, {
           method: 'PUT',
+          headers:{ Authorization:`Bearer ${t}` },
           body: fd,
         });
       } else {
@@ -168,9 +181,10 @@ export default function Catalogo() {
           librasPorBolsa: editForm.tipo === 'semillas' ? Number(editForm.librasPorBolsa || 0) : undefined,
           nota: editForm.nota || undefined,
         };
+        const t = localStorage.getItem('token');
         res = await fetch(`${getBackendUrl()}/api/catalogo/${editing._id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization:`Bearer ${t}` },
           body: JSON.stringify(payload),
         });
       }
@@ -202,10 +216,58 @@ export default function Catalogo() {
   const closeCreateModal = () => setShowForm(false);
   const closeEditModal = () => cancelEdit();
 
-  // Filtrado por nombre y tipo
+  // Filtrado por nombre y tipo + orden alfabético por defecto
   const itemsFiltrados = items
+    .slice() // copia defensiva
+    .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es', { sensitivity: 'base' }))
     .filter(it => it.nombre.toLowerCase().includes(busqueda.toLowerCase()))
     .filter(it => filtroTipo ? it.tipo === filtroTipo : true);
+
+  const letters = Array.from(new Set(itemsFiltrados.map(it => (it.nombre?.[0] || '').toUpperCase())));
+
+  const visibleLetters = React.useMemo(() => {
+    if (letters.length <= 3) return letters;
+    const idx = currentLetter ? letters.indexOf(currentLetter) : -1;
+    if (idx === -1) {
+      // No hay letra actual (al principio o sin datos), mostrar primeras 3
+      return letters.slice(0, 3);
+    }
+    // Tomar ventana alrededor de la letra actual
+    const start = Math.max(0, idx - 1);
+    const end = Math.min(letters.length, start + 3);
+    // Ajuste si estamos al final para mantener 3 siempre
+    const adjStart = Math.max(0, end - 3);
+    return letters.slice(adjStart, end);
+  }, [letters, currentLetter]);
+
+  // Limpiar refs de letras cuando cambia la lista filtrada
+  useEffect(() => { letterRefs.current = {}; }, [itemsFiltrados]);
+
+  // Actualizar letra al hacer scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      // Encontrar el primer item cuyo card está cercano a la parte superior visible
+      for (const it of itemsFiltrados) {
+        const el = cardRefs.current[it._id];
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        // Ajuste: considerar visible cuando su top está debajo de la barra y un poco antes del medio
+        if (rect.top >= 70 && rect.top < window.innerHeight * 0.5) {
+          const letter = (it.nombre?.[0] || '').toUpperCase();
+          setCurrentLetter(letter);
+          return;
+        }
+      }
+      // Si no encontramos ninguno, limpiar
+      if (itemsFiltrados.length === 0) setCurrentLetter('');
+    };
+
+    // Escuchar scroll en window (la página completa) - podría adaptarse si se usa contenedor desplazable
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Llamada inicial
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [itemsFiltrados]);
 
   return (
     <div className={catalogoStyles.catalogoContainer}>
@@ -262,75 +324,75 @@ export default function Catalogo() {
             <button type="button" className={catalogoStyles.cerrarModalBtn} onClick={closeCreateModal}>Cerrar</button>
             <h4 style={{marginTop:0, marginBottom:12}}>Nuevo producto</h4>
             <form onSubmit={onSubmit} className={catalogoStyles.formWrap + ' noGrid'}>
-        <input name="nombre" placeholder="Nombre" value={form.nombre} onChange={onChange} required className={catalogoStyles.fieldFull} />
-        <select name="tipo" value={form.tipo} onChange={onChange}>
-          <option value="veneno">Veneno</option>
-          <option value="abono">Abono</option>
-          <option value="material">Material</option>
-          <option value="semillas">Semillas</option>
-        </select>
-  <input name="precio" type="number" step="1" placeholder="Precio (Q)" value={form.precio} onChange={onChange} required className={catalogoStyles.fieldFull} />
-        {form.tipo === 'veneno' && (
-          <div className={catalogoStyles.row2}>
-            <select name="presentacion" value={form.presentacion} onChange={onChange}>
-              <option value="litro">Litro</option>
-              <option value="bolsa">Bolsa</option>
-              <option value="galon">Galón</option>
-              <option value="caneca">Caneca</option>
-            </select>
-            <input
-              name="copasPorUnidad"
-              type="number"
-              step="0.01"
-              placeholder="Copas por unidad (ej. 40 para litro)"
-              value={form.copasPorUnidad}
-              onChange={onChange}
-            />
-          </div>
-        )}
-        {form.tipo === 'semillas' && (
-          <div className={catalogoStyles.row2}>
-            <select name="presentacion" value={form.presentacion} onChange={onChange}>
-              <option value="bolsa">Bolsa</option>
-              <option value="cubeta">Cubeta</option>
-            </select>
-            <input
-              name="librasPorBolsa"
-              type="number"
-              step="0.01"
-              placeholder="Libras por presentación"
-              value={form.librasPorBolsa}
-              onChange={onChange}
-            />
-          </div>
-        )}
-        <textarea
-          name="nota"
-          placeholder="Nota (solo visible en detalles)"
-          value={form.nota}
-          onChange={onChange}
-          rows={3}
-          style={{ resize:'vertical', width:'100%', padding:'10px 12px', borderRadius:12, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)', color:'#0e0e0e' }}
-        />
-        <div className={catalogoStyles.uploadBlock}>
-          <label>O subir archivo / tomar foto</label>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              setForm(f => ({ ...f, archivo: file }));
-            }}
-          />
-          {form.archivo && (
-            <img src={URL.createObjectURL(form.archivo)} alt="preview" className={catalogoStyles.previewImage} />
-          )}
-        </div>
-        <div className={catalogoStyles.formActions}>
-          <button type="submit" disabled={loading}>{loading ? 'Guardando...' : 'Agregar'}</button>
-          <button type="button" className={catalogoStyles.dangerBtn} onClick={closeCreateModal}>Cancelar</button>
-        </div>
+              <input name="nombre" placeholder="Nombre" value={form.nombre} onChange={onChange} required className={catalogoStyles.fieldFull} />
+              <select name="tipo" value={form.tipo} onChange={onChange}>
+                <option value="veneno">Veneno</option>
+                <option value="abono">Abono</option>
+                <option value="material">Material</option>
+                <option value="semillas">Semillas</option>
+              </select>
+              <input name="precio" type="number" step="1" placeholder="Precio (Q)" value={form.precio} onChange={onChange} required className={catalogoStyles.fieldFull} />
+              {form.tipo === 'veneno' && (
+                <div className={catalogoStyles.row2}>
+                  <select name="presentacion" value={form.presentacion} onChange={onChange}>
+                    <option value="litro">Litro</option>
+                    <option value="bolsa">Bolsa</option>
+                    <option value="galon">Galón</option>
+                    <option value="caneca">Caneca</option>
+                  </select>
+                  <input
+                    name="copasPorUnidad"
+                    type="number"
+                    step="0.01"
+                    placeholder="Copas por unidad (ej. 40 para litro)"
+                    value={form.copasPorUnidad}
+                    onChange={onChange}
+                  />
+                </div>
+              )}
+              {form.tipo === 'semillas' && (
+                <div className={catalogoStyles.row2}>
+                  <select name="presentacion" value={form.presentacion} onChange={onChange}>
+                    <option value="bolsa">Bolsa</option>
+                    <option value="cubeta">Cubeta</option>
+                  </select>
+                  <input
+                    name="librasPorBolsa"
+                    type="number"
+                    step="0.01"
+                    placeholder="Libras por presentación"
+                    value={form.librasPorBolsa}
+                    onChange={onChange}
+                  />
+                </div>
+              )}
+              <textarea
+                name="nota"
+                placeholder="Nota (solo visible en detalles)"
+                value={form.nota}
+                onChange={onChange}
+                rows={3}
+                style={{ resize:'vertical', width:'100%', padding:'10px 12px', borderRadius:12, border:'1px solid rgba(255,255,255,0.15)', background:'rgba(255,255,255,0.06)', color:'#0e0e0e' }}
+              />
+              <div className={catalogoStyles.uploadBlock}>
+                <label>O subir archivo / tomar foto</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    setForm(f => ({ ...f, archivo: file }));
+                  }}
+                />
+                {form.archivo && (
+                  <img src={URL.createObjectURL(form.archivo)} alt="preview" className={catalogoStyles.previewImage} />
+                )}
+              </div>
+              <div className={catalogoStyles.formActions}>
+                <button type="submit" disabled={loading}>{loading ? 'Guardando...' : 'Agregar'}</button>
+                <button type="button" className={catalogoStyles.dangerBtn} onClick={closeCreateModal}>Cancelar</button>
+              </div>
             </form>
           </div>
         </div>
@@ -416,73 +478,96 @@ export default function Catalogo() {
         </div>
       )}
 
+      {/* Índice lateral (fuera de modales) */}
+      {letters.length > 1 && (
+        <div className={catalogoStyles.letterIndex}>
+          {visibleLetters.map(l => (
+            <button
+              key={l}
+              className={l === currentLetter ? catalogoStyles.letterIndexButtonActive : catalogoStyles.letterIndexButton}
+              onClick={() => letterRefs.current[l]?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            >{l}</button>
+          ))}
+        </div>
+      )}
       <h3 style={{ marginTop: 24 }}>Productos</h3>
-      <div className={catalogoStyles.catalogoGrid}>
-        {itemsFiltrados.map((it) => {
-          const imageSrc = it.imagen
-            ? (it.imagen.startsWith('/uploads') ? `${getBackendUrl()}${it.imagen}` : it.imagen)
-            : null;
-          return (
-            <div
-              key={it._id}
-              className={catalogoStyles.catalogoCard}
-              onClick={(e) => {
-                // Evitar apertura de detalles si se hace click en botones internos
-                if ((e.target.tagName === 'BUTTON')) return;
-                setDetalleProducto(it);
-              }}
-            >
-              {imageSrc ? (
-                <img
-                  src={imageSrc}
-                  alt={it.nombre}
-                  className={catalogoStyles.catalogoImg}
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-              ) : (
-                <div style={{
-                  height: 140,
-                  borderRadius: 8,
-                  background: 'linear-gradient(135deg,#222,#444)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 12,
-                  letterSpacing: 1,
-                  color: '#bbb'
-                }}>Sin imagen</div>
-              )}
-              <div style={{ fontWeight: 600, marginTop: 10, fontSize: 16 }}>{it.nombre}</div>
-              <div style={{ fontSize: 13, opacity: 0.9 }}>Tipo: {it.tipo}</div>
-              {it.presentacion && <div style={{ fontSize: 13, opacity: 0.9 }}>Presentación: {it.presentacion}</div>}
-              <div style={{ fontSize: 13, marginTop: 4 }}>Precio: <strong>Q.{Math.round(Number(it.precio) || 0)}</strong></div>
-              <div className={catalogoStyles.catalogoBtnRow}>
-                <button
-                  onClick={() => startEdit(it)}
-                  style={{
-                    background: '#2980b9',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 10px',
-                    borderRadius: 6,
-                    cursor: 'pointer'
-                  }}
-                >Editar</button>
-                <button
-                onClick={() => onDelete(it._id)}
-                style={{
-                  background: '#c0392b',
-                  color: '#fff',
-                  border: 'none',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  cursor: 'pointer'
+      <div className={catalogoStyles.catalogoGrid} ref={gridRef}>
+        {(() => {
+          let prevLetter = null;
+          return itemsFiltrados.map((it) => {
+            const imageSrc = it.imagen
+              ? (it.imagen.startsWith('/uploads') ? `${getBackendUrl()}${it.imagen}` : it.imagen)
+              : null;
+            const letter = (it.nombre?.[0] || '').toUpperCase();
+            const isFirstOfLetter = letter !== prevLetter;
+            prevLetter = letter;
+            return (
+              <div
+                key={it._id}
+                className={catalogoStyles.catalogoCard}
+                ref={el => {
+                  if (el) {
+                    cardRefs.current[it._id] = el;
+                    if (isFirstOfLetter) letterRefs.current[letter] = el; // anchor para índice
+                  }
                 }}
-              >Eliminar</button>
+                onClick={(e) => {
+                  if ((e.target.tagName === 'BUTTON')) return;
+                  setDetalleProducto(it);
+                }}
+              >
+                {imageSrc ? (
+                  <img
+                    src={imageSrc}
+                    alt={it.nombre}
+                    className={catalogoStyles.catalogoImg}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div style={{
+                    height: 140,
+                    borderRadius: 8,
+                    background: 'linear-gradient(135deg,#222,#444)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 12,
+                    letterSpacing: 1,
+                    color: '#bbb'
+                  }}>Sin imagen</div>
+                )}
+                <div style={{ fontWeight: 600, marginTop: 10, fontSize: 16 }}>{it.nombre}</div>
+                <div style={{ fontSize: 13, opacity: 0.9 }}>Tipo: {it.tipo}</div>
+                {it.presentacion && <div style={{ fontSize: 13, opacity: 0.9 }}>Presentación: {it.presentacion}</div>}
+                <div style={{ fontSize: 13, marginTop: 4 }}>Precio: <strong>Q.{Math.round(Number(it.precio) || 0)}</strong></div>
+                <div className={catalogoStyles.catalogoBtnRow}>
+                  <button
+                    onClick={() => startEdit(it)}
+                    style={{
+                      background: '#2980b9',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      cursor: 'pointer'
+                    }}
+                  >Editar</button>
+                  <button
+                    onClick={() => onDelete(it._id)}
+                    style={{
+                      background: '#c0392b',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 10px',
+                      borderRadius: 6,
+                      cursor: 'pointer'
+                    }}
+                  >Eliminar</button>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
       {detalleProducto && (
         <div className={catalogoStyles.modalOverlayCatalogo} onClick={(e)=>{ if(e.target===e.currentTarget) setDetalleProducto(null); }}>

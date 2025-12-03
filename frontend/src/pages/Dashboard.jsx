@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import styles from "./Dashboard.module.css";
 import { useNavigate } from "react-router-dom";
-import { FaPlus, FaClipboardList, FaSignOutAlt, FaSearch } from "react-icons/fa"; // Agrega FaSearch
+import { FaPlus, FaClipboardList, FaSignOutAlt, FaSearch, FaArrowLeft } from "react-icons/fa"; // Agrega icono de regresar
 import { getBackendUrl } from '../utils/api';
 
 // Picker para agregar productos uno a uno
@@ -9,39 +9,62 @@ function ProductoPicker({ productosCatalogo, productosSeleccionados, onAdd }) {
     const [productoId, setProductoId] = useState("");
     const [cantidad, setCantidad] = useState(0);
     const [unidad, setUnidad] = useState("copas");
-
-    const opciones = productosCatalogo.filter((p) => !productosSeleccionados.some((s) => s.producto === p._id));
-    const prodSel = productosCatalogo.find((p) => p._id === productoId);
+    const [filtroProducto, setFiltroProducto] = useState("");
+    const [mostrarLista, setMostrarLista] = useState(false);
+    // Defensivo: asegurar que siempre tratamos con arrays válidos
+    const catalogoSeguro = Array.isArray(productosCatalogo) ? productosCatalogo : [];
+    const opciones = catalogoSeguro
+        .filter((p) => !productosSeleccionados.some((s) => s.producto === p._id))
+        .slice()
+        .sort((a,b)=> (a.nombre||'').localeCompare(b.nombre||'', 'es', { sensitivity:'base' }))
+        .filter(p => (p.nombre||'').toLowerCase().includes(filtroProducto.toLowerCase()));
+    const prodSel = catalogoSeguro.find((p) => p._id === productoId);
 
     return (
         <div style={{ marginBottom: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 120px', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                <select value={productoId} onChange={(e) => {
-                    const id = e.target.value;
-                    setProductoId(id);
-                    const p = productosCatalogo.find(pp => pp._id === id);
-                    if (p?.tipo === 'veneno') setUnidad('copas');
-                    else if (p?.tipo === 'semillas') setUnidad('libras');
-                    else setUnidad('unidades');
-                }}>
-                    <option value="">Selecciona un producto</option>
-                    {opciones.map((p) => (
-                        <option key={p._id} value={p._id}>{p.nombre} {p.presentacion ? `(${p.presentacion})` : ''}</option>
-                    ))}
-                </select>
-                <input type="number" min="0" step="0.01" placeholder="Cantidad" value={cantidad} onChange={(e) => setCantidad(parseFloat(e.target.value))} />
+            <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr 1.8fr'  }}>
+                <div style={{ position:'relative' }}>
+                    <input
+                        type="text"
+                        placeholder="Selecciona producto..."
+                        value={filtroProducto}
+                        onChange={e=> { setFiltroProducto(e.target.value); setMostrarLista(true); }}
+                        onFocus={()=> setMostrarLista(true)}
+                        style={{ width:'70%', padding:'6px 8px', border:'1px solid #ddd', borderRadius:6, fontSize:'0.9rem' }}
+                    />
+                    {mostrarLista && opciones.length > 0 && (
+                        <div style={{ position:'absolute', top:'calc(100% + 3px)', left:0, right:0, background:'#fff', border:'1px solid #ddd', borderRadius:6, boxShadow:'0 8px 24px rgba(0,0,0,0.12)', maxHeight:140, overflowY:'auto', zIndex:30 }}>
+                            {opciones.map(p => (
+                                <div
+                                    key={p._id}
+                                    onMouseDown={() => {
+                                        setFiltroProducto(`${p.nombre}${p.presentacion ? ` (${p.presentacion})` : ''}`);
+                                        setProductoId(p._id);
+                                        const prod = productosCatalogo.find(pp => pp._id === p._id);
+                                        if (prod?.tipo === 'veneno') setUnidad('copas');
+                                        else if (prod?.tipo === 'semillas') setUnidad('libras');
+                                        else setUnidad('unidades');
+                                        setMostrarLista(false);
+                                    }}
+                                    style={{ padding:'6px 8px', cursor:'pointer', fontSize:'0.9rem' }}
+                                >{p.nombre} {p.presentacion ? `(${p.presentacion})` : ''}</div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <input type="number" min="0" width='100%' step="0.01" placeholder="Cant." value={cantidad} onChange={(e) => setCantidad(parseFloat(e.target.value))} style={{ padding:'6px 8px', fontSize:'0.9rem', width:'5ch' }} />
                 {prodSel && prodSel.tipo === 'veneno' ? (
-                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>
+                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)} style={{ width:'100%' }}>
                         <option value="copas">Copas</option>
                         <option value="unidades">Unidades</option>
                     </select>
                 ) : prodSel && prodSel.tipo === 'semillas' ? (
-                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)}>
+                    <select value={unidad} onChange={(e) => setUnidad(e.target.value)} style={{ padding:'6px 8px', fontSize:'0.9rem', width:'100%' }}>
                         <option value="libras">Libras</option>
                         <option value="unidad">Unidad</option>
                     </select>
                 ) : (
-                    <span style={{ fontSize: 12, color: '#666' }}>{prodSel?.presentacion || 'unidades'}</span>
+                    <span style={{ fontSize: 12, color: '#666', display:'inline-block', width:'5ch', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{prodSel?.presentacion || 'unidades'}</span>
                 )}
             </div>
             <div>
@@ -55,7 +78,11 @@ function ProductoPicker({ productosCatalogo, productosSeleccionados, onAdd }) {
                         else unidadEnviar = 'unidades';
                     }
                     onAdd({ producto: productoId, cantidad: Number(cantidad) || 0, unidad: unidadEnviar });
-                    setProductoId(""); setCantidad(0); setUnidad('copas');
+                    setProductoId("");
+                    setCantidad(0);
+                    setUnidad('copas');
+                    setFiltroProducto("");
+                    setMostrarLista(false);
                 }}>Agregar producto</button>
             </div>
         </div>
@@ -67,7 +94,7 @@ function ListaSeleccionados({ productosCatalogo, seleccionados, onRemove }) {
     return (
         <div style={{ marginTop: 4 }}>
             {seleccionados.map((sel) => {
-                const prod = productosCatalogo.find((p) => p._id === sel.producto);
+                const prod = (Array.isArray(productosCatalogo) ? productosCatalogo : []).find((p) => p._id === sel.producto);
                 if (!prod) return null;
                 let unidadMostrar;
                 if (prod.tipo === 'veneno') {
@@ -94,6 +121,7 @@ function ListaSeleccionados({ productosCatalogo, seleccionados, onRemove }) {
 const Dashboard = () => {
     const [manzanas, setManzanas] = useState([]);
     const [nuevaManzana, setNuevaManzana] = useState("");
+    const [crearManzanaMsg, setCrearManzanaMsg] = useState("");
     const navigate = useNavigate();
 
     // Estados para el formulario de actividades
@@ -104,6 +132,7 @@ const Dashboard = () => {
         fechaAlerta: "",
         manzanaId: ""
     });
+    const [actividadPersonalizada, setActividadPersonalizada] = useState("");
 
     // Productos para actividad rápida desde dashboard
     const [productosCatalogo, setProductosCatalogo] = useState([]);
@@ -114,11 +143,47 @@ const Dashboard = () => {
     // Estados para búsqueda y filtro
     const [busqueda, setBusqueda] = useState("");
     const [filtroEstado, setFiltroEstado] = useState(""); // "" = todos, "rojo", "verde"
+    const [showFilterMenu, setShowFilterMenu] = useState(false);
     // Control de expansión de cada tarjeta de manzana
     const [manzanasAbiertas, setManzanasAbiertas] = useState({}); // { [idManzana]: true }
 
+    const token = localStorage.getItem('token');
+    const aprobado = localStorage.getItem('aprobado') === 'true';
+    const role = localStorage.getItem('role');
+    const [diasRestantes, setDiasRestantes] = useState(null);
+    const [enGracia, setEnGracia] = useState(false);
+    const [diasGraciaRestantes, setDiasGraciaRestantes] = useState(null);
+
     useEffect(() => {
-        fetch(`${getBackendUrl()}/manzanas`)
+        const t = localStorage.getItem('token');
+        if (!t) return;
+        fetch(`${getBackendUrl()}/suscripciones/mi-ultima`, { headers:{ Authorization:`Bearer ${t}` }})
+            .then(r => r.json())
+            .then(doc => {
+                if (doc && doc.fechaFin) {
+                    const fin = new Date(doc.fechaFin);
+                    const hoy = new Date();
+                    const diff = Math.ceil((fin.setHours(0,0,0,0) - hoy.setHours(0,0,0,0)) / (1000*60*60*24));
+                    setDiasRestantes(diff);
+                    // Calcular período de gracia si expiró
+                    if (diff < 0) {
+                        const diasDesdeExp = Math.abs(diff);
+                        if (diasDesdeExp <= 5) {
+                            setEnGracia(true);
+                            setDiasGraciaRestantes(5 - diasDesdeExp);
+                        }
+                    }
+                } else {
+                    setDiasRestantes(null);
+                }
+            })
+            .catch(()=>{});
+    }, []);
+
+    useEffect(() => {
+        const t = localStorage.getItem('token');
+        if (!t) return;
+        fetch(`${getBackendUrl()}/manzanas`, { headers:{ Authorization:`Bearer ${t}` }})
             .then(res => res.json())
             .then(data => setManzanas(data))
             .catch(error => console.error("Error al obtener manzanas:", error));
@@ -127,30 +192,68 @@ const Dashboard = () => {
     useEffect(() => {
         const cargarCatalogo = async () => {
             try {
-                const res = await fetch(`${getBackendUrl()}/api/catalogo`);
-                const data = await res.json();
+                const t = localStorage.getItem('token');
+                const res = await fetch(`${getBackendUrl()}/api/catalogo`, {
+                    headers: t ? { Authorization: `Bearer ${t}` } : {}
+                });
+                const data = await res.json().catch(() => []);
+                if (!res.ok || !Array.isArray(data)) {
+                    console.warn('Catálogo no disponible o respuesta inválida', data);
+                    setProductosCatalogo([]);
+                    return;
+                }
                 setProductosCatalogo(data);
             } catch (e) {
                 console.error('Error cargando catálogo:', e);
+                setProductosCatalogo([]);
             }
         };
         cargarCatalogo();
     }, []);
 
+    // Solicitar acceso (si no aprobado)
+    const [solicitudMsg, setSolicitudMsg] = useState('');
+    const solicitarAcceso = async () => {
+        setSolicitudMsg('');
+        try {
+            const res = await fetch(`${getBackendUrl()}/solicitudes/solicitar`, {
+                method:'POST',
+                headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
+                body: JSON.stringify({ motivo: 'Quiero acceso completo' })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setSolicitudMsg('Solicitud enviada, espera aprobación.');
+            } else {
+                setSolicitudMsg(data.message || 'Error enviando solicitud');
+            }
+        } catch(e){
+            setSolicitudMsg('Error de red');
+        }
+    };
+
     const handleAgregarManzana = () => {
         if (!nuevaManzana.trim()) return;
-
+        const t = localStorage.getItem('token');
         fetch(`${getBackendUrl()}/manzanas`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", Authorization:`Bearer ${t}` },
             body: JSON.stringify({ nombre: nuevaManzana })
         })
-        .then(res => res.json())
-        .then(data => {
+        .then(async res => {
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                setCrearManzanaMsg(data.message || 'No se pudo crear la manzana');
+                return;
+            }
             setManzanas([...manzanas, data]);
             setNuevaManzana("");
+            setCrearManzanaMsg('');
         })
-        .catch(error => console.error("Error al agregar manzana:", error));
+        .catch(error => {
+            console.error("Error al agregar manzana:", error);
+            setCrearManzanaMsg('Error de red al crear la manzana');
+        });
     };
 
     const handleAgregarActividad = (id) => {
@@ -168,26 +271,26 @@ const Dashboard = () => {
 
     const handleSubmitActividad = (e) => {
         e.preventDefault();
-        // Enviamos cantidad y unidad; backend calcula costo usando copasPorUnidad cuando unidad='copas'
+        const tipoElegido = actividad.tipo === '__personalizada__' ? actividadPersonalizada.trim() : actividad.tipo;
+        if (!tipoElegido) return; // evitar enviar vacío
         const productosParaEnviar = productosSeleccionados.map((p) => ({
             producto: p.producto,
             cantidad: Number(p.cantidad || 0),
             unidad: p.unidad || 'unidades',
         }));
-
+        const t = localStorage.getItem('token');
         fetch(`${getBackendUrl()}/actividades`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", Authorization:`Bearer ${t}` },
             body: JSON.stringify({
-                tipo: actividad.tipo,
+                tipo: tipoElegido,
                 fechaRealizacion: actividad.fechaRealizacion,
                 fechaAlerta: actividad.fechaAlerta,
-                manzana: actividad.manzanaId, // Esto debe tener el ID de la manzana
+                manzana: actividad.manzanaId,
                 productosUtilizados: productosParaEnviar,
                 costoTrabajo: Number(costoTrabajo) || 0,
             })
         })
-        
         .then(res => res.json())
         .then(data => {
             setManzanas(manzanas.map(manzana =>
@@ -217,18 +320,17 @@ const diasDesdeSiembra = (manzana) => {
     const handleEliminarManzana = async (id) => {
         const confirmar = window.confirm("¿Estás seguro de que deseas eliminar esta manzana?");
         if (!confirmar) return;
-    
+        const t = localStorage.getItem('token');
         try {
             const response = await fetch(`${getBackendUrl()}/manzanas/${id}`, {
                 method: "DELETE",
+                headers:{ Authorization:`Bearer ${t}` }
             });
-    
             if (!response.ok) {
                 throw new Error("Error al eliminar la manzana");
             }
-    
             alert("Manzana eliminada correctamente");
-            setManzanas(manzanas.filter((manzana) => manzana._id !== id)); // Actualiza el estado
+            setManzanas(manzanas.filter((manzana) => manzana._id !== id));
         } catch (error) {
             console.error("Error eliminando manzana:", error);
             alert("No se pudo eliminar la manzana.");
@@ -238,20 +340,17 @@ const diasDesdeSiembra = (manzana) => {
     useEffect(() => {
         const obtenerManzanas = async () => {
             try {
-                const res = await fetch(`${getBackendUrl()}/manzanas/estado`); // Llamamos al nuevo endpoint
+                const t = localStorage.getItem('token');
+                const res = await fetch(`${getBackendUrl()}/manzanas/estado`, { headers:{ Authorization:`Bearer ${t}` }});
                 const data = await res.json();
                 setManzanas(data);
             } catch (error) {
                 console.error("Error al obtener manzanas:", error);
             }
         };
-    
         obtenerManzanas();
-    
-        // Actualizar cada 30 segundos para verificar cambios en las alertas
         const interval = setInterval(obtenerManzanas, 30000);
-    
-        return () => clearInterval(interval); // Limpiar intervalo al desmontar el componente
+        return () => clearInterval(interval);
     }, []);
 
     // Filtrar manzanas por búsqueda y estado
@@ -261,18 +360,69 @@ const diasDesdeSiembra = (manzana) => {
         return coincideBusqueda && coincideEstado;
     });
 
+    // Acción para refrescar datos (manzanas + suscripción)
+    const refrescar = () => {
+        const t = localStorage.getItem('token');
+        if (!t) return;
+        // Refrescar estado de suscripción
+        fetch(`${getBackendUrl()}/suscripciones/mi-ultima`, { headers:{ Authorization:`Bearer ${t}` }})
+            .then(r => r.json())
+            .then(doc => {
+                if (doc && doc.fechaFin) {
+                    const fin = new Date(doc.fechaFin);
+                    const hoy = new Date();
+                    const diff = Math.ceil((fin.setHours(0,0,0,0) - hoy.setHours(0,0,0,0)) / (1000*60*60*24));
+                    setDiasRestantes(diff);
+                    if (diff < 0) {
+                        const diasDesdeExp = Math.abs(diff);
+                        if (diasDesdeExp <= 5) {
+                            setEnGracia(true);
+                            setDiasGraciaRestantes(5 - diasDesdeExp);
+                        } else {
+                            setEnGracia(false);
+                            setDiasGraciaRestantes(null);
+                        }
+                    } else {
+                        setEnGracia(false);
+                        setDiasGraciaRestantes(null);
+                    }
+                } else {
+                    setDiasRestantes(null);
+                    setEnGracia(false);
+                    setDiasGraciaRestantes(null);
+                }
+            })
+            .catch(()=>{});
+
+        // Refrescar manzanas (estado consolidado)
+        fetch(`${getBackendUrl()}/manzanas/estado`, { headers:{ Authorization:`Bearer ${t}` }})
+            .then(res => res.json())
+            .then(data => setManzanas(Array.isArray(data) ? data : []))
+            .catch(()=>{});
+    };
+
     // ...existing code...
    return (
     <div className={styles.dashboardContainer}>
         <div className={styles.topBar}>
-            <span
+            <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
+               
+                <span
                     className={styles.titulo}
                     style={{ cursor: "pointer" }}
                     onClick={() => navigate("/")}
                 >
                     Mis Manzanas
                 </span>
+            </div>
+            {typeof diasRestantes === 'number' && (
+                <span style={{ color:'#fff', marginLeft: 12 }}>⏳ {diasRestantes} días para renovar</span>
+            )}
+            {enGracia && (
+                <span style={{ color:'#b58900', marginLeft: 12 }}>⚠️suscripcion vencida: {diasGraciaRestantes} día(s) restantes</span>
+            )}
             <div className={styles.searchBarContainer}>
+               
                 <div className={styles.searchInputWrapper}>
                     <input
                         type="text"
@@ -283,27 +433,76 @@ const diasDesdeSiembra = (manzana) => {
                     />
                     <FaSearch className={styles.searchIcon} />
                 </div>
-                <button
-                    className={`${styles.btnAgregarManzana} ${filtroEstado === "rojo" ? styles.activeFilter : ""}`}
-                    onClick={() => setFiltroEstado(filtroEstado === "rojo" ? "" : "rojo")}
-                >
-                    Solo Rojas
-                </button>
-                <button
-                    className={`${styles.btnAgregarManzana} ${filtroEstado === "verde" ? styles.activeFilter : ""}`}
-                    onClick={() => setFiltroEstado(filtroEstado === "verde" ? "" : "verde")}
-                >
-                    Solo Verdes
-                </button>
-                <button
+                <div style={{ position:'relative' }}>
+                    <button
+                        className={styles.btnAgregarManzana}
+                        onClick={() => setShowFilterMenu(v => !v)}
+                        title="Filtrar por color"
+                    >
+                        {`Filtro: ${filtroEstado === '' ? 'todos' : filtroEstado}`}
+                    </button>
+                    {showFilterMenu && (
+                        <div style={{ position:'absolute', right:0, top:'calc(100% + 8px)', background:'rgba(23,21,18,0.96)', color:'#eaf7d9', border:'1px solid rgba(255,255,255,0.12)', borderRadius:8, boxShadow:'0 12px 32px rgba(0,0,0,0.4)', minWidth:180, zIndex:20 }}>
+                            {[
+                                { key:'', label:'todos' },
+                                { key:'rojo', label:'solo rojas' },
+                                { key:'verde', label:'solo verdes' }
+                            ].map(opt => (
+                                <div
+                                    key={opt.key === '' ? 'todos' : opt.key}
+                                    onClick={() => { setFiltroEstado(opt.key); setShowFilterMenu(false); }}
+                                    style={{ padding:'8px 12px', cursor:'pointer', background: (filtroEstado === opt.key) ? 'rgba(255,255,255,0.06)' : 'transparent' }}
+                                >
+                                    {opt.label}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                                <button
                     className={styles.btnAgregarManzana}
                     onClick={() => navigate('/catalogo')}
                     title="Ir al catálogo de productos"
                 >
                     Catálogo
                 </button>
+                                {!aprobado && role !== 'admin' && (
+                                    <button className={styles.btnAgregarManzana} onClick={solicitarAcceso}>
+                                        Solicitar acceso
+                                    </button>
+                                )}
+                {(role === 'agricultor' ) && (
+                    <>
+                        <button className={styles.btnAgregarManzana} onClick={() => navigate('/suscripcion')}>
+                            Pago
+                        </button>
+                        <button className={styles.btnAgregarManzana} onClick={() => navigate('/colaboradores')}>
+                            Colaboradores
+                        </button>
+                    
+                    </>
+                )}
+
+                {(role === 'admin') && (
+                    <>
+                       
+                        <button className={styles.btnAgregarManzana} onClick={() => navigate('/colaboradores')}>
+                            Colaboradores
+                        </button>
+                        <button className={styles.btnAgregarManzana} onClick={() => navigate('/agregar-usuario')}>
+                            Usuarios
+                        </button>
+                    </>
+                )}
+                 <button className={styles.btnAgregarManzana} onClick={refrescar}>
+                            Refrescar
+                        </button>
+                
             </div>
         </div>
+                {!aprobado && role !== 'admin' && solicitudMsg && (
+                    <p style={{color:'#fff', margin:'4px 12px'}}>{solicitudMsg}</p>
+                )}
         {/* ...resto del código... */}
     
             {/* Formulario para agregar manzanas */}
@@ -317,6 +516,9 @@ const diasDesdeSiembra = (manzana) => {
                 <button className={styles.btnAgregarManzana} onClick={handleAgregarManzana}>
                     ➕ Agregar Manzana
                 </button>
+                {crearManzanaMsg && (
+                    <div style={{ color: '#c0392b', marginTop: 6 }}>{crearManzanaMsg}</div>
+                )}
             </div>
 
             {/* Lista de manzanas */}
@@ -400,25 +602,52 @@ const diasDesdeSiembra = (manzana) => {
                     <div className={styles.modalContent}>
                         <h2>Agregar Actividad</h2>
                         <form onSubmit={handleSubmitActividad}>
-                                                        <select
-                                                                value={actividad.tipo}
-                                                                onChange={(e) => setActividad({ ...actividad, tipo: e.target.value })}
-                                                                required
-                                                        >
-                                <option value="" disabled hidden>Selecciona una actividad</option>
-                                <option value="fumigar gusano">Fumigar Gusano</option>
-                                <option value="fumigar rolla">Fumigar Rolla</option>
-                                <option value="abonar">Abonar</option>
-                                <option value="sembrar">Sembrar</option>
-                                <option value="fumigar monte">Fumigar Monte</option>
-                                <option value="poner manguera">Poner Manguera</option>
-                                <option value="cortar">Cortar</option>
-                                <option value="inyectar">Inyectar</option>
-                                <option value="tronquiar">Tronquiar</option>
-                                <option value="fumigar gilote">Fumigar Gilote</option>
-                                <option value="tractorar">Tractorear</option>
-                                <option value="otros">Otros</option>
-                            </select>
+                            {(() => {
+                                const base = [
+                                    'Fumigar Gusano',
+                                    'Fumigar Rolla',
+                                    'Abonar',
+                                    'Sembrar',
+                                    'Fumigar Monte',
+                                    'Poner Manguera',
+                                    'Cortar',
+                                    'Inyectar',
+                                    'Tronquiar',
+                                    'Fumigar Gilote',
+                                    'Tractorar',
+                                    'Revisar Manguera',
+                                    'Quitar Manguera',
+                                    'Poner Nailo',
+                                    'Poner Manta',
+                                    'Inyectar Abono'
+                                ];
+                                const opcionesOrdenadas = base.sort((a,b)=> a.localeCompare(b,'es',{sensitivity:'base'}));
+                                return (
+                                    <>
+                                        <select
+                                            value={actividad.tipo}
+                                            onChange={(e) => setActividad({ ...actividad, tipo: e.target.value })}
+                                            required
+                                        >
+                                            <option value="" disabled hidden>Selecciona una actividad</option>
+                                            {opcionesOrdenadas.map(opt => (
+                                                <option key={opt.toLowerCase()} value={opt.toLowerCase()}>{opt}</option>
+                                            ))}
+                                            <option value="__personalizada__">Personalizada…</option>
+                                        </select>
+                                        {actividad.tipo === '__personalizada__' && (
+                                            <input
+                                                type="text"
+                                                placeholder="Nombre de actividad"
+                                                value={actividadPersonalizada}
+                                                onChange={(e)=> setActividadPersonalizada(e.target.value)}
+                                                required
+                                                style={{ marginTop:8 }}
+                                            />
+                                        )}
+                                    </>
+                                );
+                            })()}
                             <label>Fecha de Realización</label>
                             <input
                                 type="date"
