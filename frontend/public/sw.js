@@ -1,4 +1,4 @@
-const CACHE = 'siembras-cache-v1';
+const CACHE = 'siembras-cache-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
 
   // Estrategia: Network First para la API, Cache First para lo demás.
   // Si la petición es a la API (ej. contiene /manzanas, /api/, /auth, etc.), ir a la red primero.
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname.startsWith('/manzanas') || url.pathname.startsWith('/cosechas') || url.pathname.startsWith('/actividades') || url.pathname.startsWith('/status')) {
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/') || url.pathname.startsWith('/manzanas') || url.pathname.startsWith('/cosechas') || url.pathname.startsWith('/actividades') || url.pathname.startsWith('/status') || url.pathname.startsWith('/suscripciones')) {
     event.respondWith(
       fetch(request)
         .then((response) => {

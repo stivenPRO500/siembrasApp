@@ -8,6 +8,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { v2 as cloudinary } from 'cloudinary';
 import Suscripcion from '../models/Suscripcion.js';
+import Manzana from '../models/Manzana.js';
+import Actividad from '../models/Actividad.js';
+import Catalogo from '../models/Catalogo.js';
+import Cosecha from '../models/Cosecha.js';
 const router = express.Router();
 
 // Configuración de subida (igual que catálogo/suscripciones)
@@ -272,19 +276,36 @@ router.put('/usuarios/:id/asignar-agricultor', authMiddleware, async (req, res) 
 // Eliminar usuario (solo admin)
 router.delete("/usuarios/:id", authMiddleware, async (req, res) => {
     try {
-        // Validar si es admin
         if (req.user.role !== "admin") {
             return res.status(403).json({ message: "Acceso denegado" });
         }
 
-        const user = await User.findByIdAndDelete(req.params.id);
-
+        const userId = req.params.id;
+        const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
 
-        res.json({ message: "Usuario eliminado correctamente" });
+        // Si es agricultor, eliminar todos los datos relacionados y sus colaboradores
+        if (user.role === 'agricultor') {
+            await Promise.all([
+                Manzana.deleteMany({ owner: userId }),
+                Actividad.deleteMany({ owner: userId }),
+                Catalogo.deleteMany({ owner: userId }),
+                Cosecha.deleteMany({ owner: userId }),
+                Suscripcion.deleteMany({ usuario: userId })
+            ]);
+            // Eliminar colaboradores asociados a este agricultor
+            await User.deleteMany({ role: 'usuario', agricultor: userId });
+        } else if (user.role === 'usuario') {
+            // Si es colaborador, limpiar sus suscripciones (por si tuviera)
+            await Suscripcion.deleteMany({ usuario: userId });
+        }
+
+        await user.deleteOne();
+        res.json({ message: "Usuario y datos relacionados eliminados correctamente" });
     } catch (error) {
+        console.error('Error eliminando usuario:', error);
         res.status(500).json({ message: "Error en el servidor" });
     }
 });

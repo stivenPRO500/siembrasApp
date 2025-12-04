@@ -44,26 +44,56 @@ export default function AdminSuscripciones() {
 	const aprobar = async (id) => {
 		try {
 			const res = await fetch(`${getBackendUrl()}/suscripciones/${id}/aprobar`, { method:'PUT', headers:{ 'Authorization':`Bearer ${token}` }});
-			if (res.ok) { cargarPendientes(); cargarUsuariosEstado(); }
-		} catch {}
+			if (res.ok) { 
+				cargarPendientes(); 
+				cargarUsuariosEstado(); 
+			} else {
+				const errData = await res.json();
+				setError(`Error al aprobar: ${errData.message || 'Error desconocido'}`);
+			}
+		} catch (e) {
+			setError(`Error de red al aprobar: ${e.message}`);
+		}
 	};
 	const rechazar = async (id) => {
 		try {
 			const res = await fetch(`${getBackendUrl()}/suscripciones/${id}/rechazar`, { method:'PUT', headers:{ 'Authorization':`Bearer ${token}` }});
-			if (res.ok) { cargarPendientes(); cargarUsuariosEstado(); }
-		} catch {}
+			if (res.ok) { 
+				cargarPendientes(); 
+				cargarUsuariosEstado(); 
+			} else {
+				const errData = await res.json();
+				setError(`Error al rechazar: ${errData.message || 'Error desconocido'}`);
+			}
+		} catch (e) {
+			setError(`Error de red al rechazar: ${e.message}`);
+		}
 	};
 	const suspenderUsuario = async (id) => {
 		try {
 			const res = await fetch(`${getBackendUrl()}/suscripciones/usuarios/${id}/suspender`, { method:'PUT', headers:{ 'Authorization':`Bearer ${token}` }});
-			if (res.ok) cargarUsuariosEstado();
-		} catch {}
+			if (res.ok) {
+				cargarUsuariosEstado();
+			} else {
+				const errData = await res.json();
+				setError(`Error al suspender: ${errData.message || 'Error desconocido'}`);
+			}
+		} catch (e) {
+			setError(`Error de red al suspender: ${e.message}`);
+		}
 	};
 	const rehabilitarUsuario = async (id) => {
 		try {
 			const res = await fetch(`${getBackendUrl()}/suscripciones/usuarios/${id}/rehabilitar`, { method:'PUT', headers:{ 'Authorization':`Bearer ${token}` }});
-			if (res.ok) cargarUsuariosEstado();
-		} catch {}
+			if (res.ok) {
+				cargarUsuariosEstado();
+			} else {
+				const errData = await res.json();
+				setError(`Error al rehabilitar: ${errData.message || 'Error desconocido'}`);
+			}
+		} catch (e) {
+			setError(`Error de red al rehabilitar: ${e.message}`);
+		}
 	};
 
 	// Derivar categoría de estado para orden y color

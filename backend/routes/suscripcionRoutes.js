@@ -132,14 +132,19 @@ router.put('/:id/aprobar', authMiddleware, async (req, res) => {
     doc.fechaInicio = now;
     doc.fechaFin = fin;
     await doc.save();
-    // Marcar usuario como aprobado y actualizar expiración. Limpiar suspensión y periodo de gracia.
-    await User.findByIdAndUpdate(doc.usuario._id, { 
-      aprobado: true,
-      estado: 'aprobado',
-      suscripcionExpira: fin,
-      suscripcionSuspendido: false,
-      suscripcionGraceInicio: null
-    });
+    
+    // Actualizar el estado del usuario a 'aprobado' para permitir el login
+    // y también limpiar cualquier estado de suspensión o gracia previo.
+    const usuario = await User.findById(doc.usuario._id);
+    if (usuario) {
+        usuario.estado = 'aprobado'; // Permite el login
+        usuario.aprobado = true;
+        usuario.suscripcionExpira = fin;
+        usuario.suscripcionSuspendido = false;
+        usuario.suscripcionGraceInicio = null;
+        await usuario.save();
+    }
+
     res.json({ message: 'Aprobada', suscripcion: doc });
   } catch (e) {
     res.status(500).json({ message: 'Error aprobando', error: e.message });
